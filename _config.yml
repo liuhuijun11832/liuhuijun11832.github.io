@@ -81,21 +81,27 @@ deploy:
   type: git
   repo: https://github.com/liuhuijun11832/liuhuijun11832.github.io.git
   branch: master
-jsonContent:
-    meta: false
-    pages: false
-    posts:
-      title: true
-      date: true
-      path: true
-      text: false
-      raw: false
-      content: false
-      slug: false
-      updated: false
-      comments: false
-      link: false
-      permalink: false
-      excerpt: false
-      categories: false
-      tags: true
+search:
+  path: search.xml
+  field: post
+  format: html
+  limit: 10000
+# for yilia theme
+# jsonContent:
+#     meta: false
+#     pages: false
+#     posts:
+#       title: true
+#       date: true
+#       path: true
+#       text: false
+#       raw: false
+#       content: false
+#       slug: false
+#       updated: false
+#       comments: false
+#       link: false
+#       permalink: false
+#       excerpt: false
+#       categories: false
+#       tags: true

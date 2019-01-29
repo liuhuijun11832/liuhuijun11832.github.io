@@ -8,6 +8,7 @@ tags: hexo
 环境：腾讯云服务器+新网域名，github，hexo
 
 需求：www.guitar-coder.cn指向服务器主站，blog.guitar-coder.cn指向github，写个人笔记和博客。
+<!-- more -->
 
 # 二、步骤
 ## 2.1.安装nodejs
