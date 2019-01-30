@@ -1,8 +1,11 @@
 ---
 title: Spring AOP随记
 date: 2019-01-30 10:58:53
-update: 
-tags: Java
+update:
+categories: 编程技术
+tags: 
+- Java
+- 杂记
 ---
 # 一、简述
 最近看到公司业务代码执行的时候有这么两句：
@@ -280,11 +283,11 @@ step2:
 	}
 
 定义切点和增强：
-	@Component
-@Aspect
-@Order(1)
-public class DataSourceAop {
 
+	@Component
+	@Aspect
+	@Order(1)
+	public class DataSourceAop {
     private final static Logger LOGGER = LoggerFactory.getLogger(DataSourceAop.class);
 
     @Pointcut(value = "@annotation(com.blog.aop.DataSource)")

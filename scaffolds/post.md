@@ -1,6 +1,6 @@
 ---
 title: {{ title }}
 date: {{ date }}
-update: {{ updated }}
 tags:
+categories: 编程技术
 ---

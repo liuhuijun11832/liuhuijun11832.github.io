@@ -1,7 +1,10 @@
 ---
 title: git+hexo搭建个人博客
 date: 2019-01-28 13:32:51
-tags: hexo
+tags: 
+- hexo
+- 杂记
+categories: 编程技术
 ---
 
 # 一、简述
