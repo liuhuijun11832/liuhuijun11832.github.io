@@ -7,14 +7,14 @@ tags:
 categories: 编程技术
 ---
 
-# 一、简述
+# 简述
 环境：腾讯云服务器+新网域名，github，hexo
 
 需求：www.guitar-coder.cn指向服务器主站，blog.guitar-coder.cn指向github，写个人笔记和博客。
 <!-- more -->
 
-# 二、步骤
-## 2.1.安装nodejs
+# 步骤
+## 安装nodejs
 下载nodeJS，官网https://nodejs.org/en/
 
 windows或者mac可以下载可执行文件直接一路安装即可，当然mac也可以执行`brew install node`,至于linux下，这里以二进制binary为例（来源于官网教程）：
@@ -46,7 +46,7 @@ windows或者mac可以下载可执行文件直接一路安装即可，当然mac�
 
 以后npm和cnpm都可以用，效果基本一致，cnpm的速度更快。
 
-## 2.2.安装hexo
+## 安装hexo
 首先需要安装hexo-cli脚手架工具：
 
 `cnpm install hexo-cli -g`
@@ -75,7 +75,7 @@ windows或者mac可以下载可执行文件直接一路安装即可，当然mac�
 这种错，有可能是由于modules下载出现问题，删除node_modules文件夹，然后重新执行`cnpm install` 或者 `npm install`即可。
 
 
-## 2.3.远程部署
+## 远程部署
 在github或者gitee上新建一个仓库，可以不用gitignore，hexo已经自动生成，readme文件也可以随意。
 
 在blog目录下找到.config.yml文件，编辑，找到deploy模块，改成仓库地址，记住yml文件格式要求value前面有一个空格。
@@ -91,7 +91,7 @@ windows或者mac可以下载可执行文件直接一路安装即可，当然mac�
 每一次新写文章，可以通过`hexo clean && hexo generate && hexo deploy`发布到博客。
 
 
-## 2.4.多机器开发
+## 多机器开发
 此时线上的仓库里会有hexo编译成js以后的文件，还需要新建分支存放源代码：
 
 	git checkout -b source
@@ -102,7 +102,7 @@ windows或者mac可以下载可执行文件直接一路安装即可，当然mac�
 master分支用于存放页面，source用于存放源代码。
 
 
-## 2.5.自定义域名
+## 自定义域名
 将blog.guitar-coder.cn指向github提供的pages。默认情况下github提供的pages是Repository name，当然我的guitar-coder.cn已经备案过。
 
 在github settings页面，填入自己的域名，如图：
@@ -116,13 +116,13 @@ master分支用于存放页面，source用于存放源代码。
 因为我是要把blog.guitar-coder.cn转发到github pages的liuhuijun11832.github.io的页面，所以需要配置CNAME，这里也可以先ping 通liuhuijun11832.github.io的IP地址，然后使用记录类型A来进行解析。
 每个DNS服务商的刷新速度不一致，静等片刻即可。
 
-## 2.6.推送博客
+## 推送博客
 新建一篇博文：
 `hexo new "test"`
 
 然后找一个能够实时渲染效果的markdown编辑器，mac下推荐macdown，windows下我习惯使用markdown pad2（需要安装awison-sdk插件实时渲染），打开source/_posts/test.md完成以后使用`hexo clean && hexo g&& hexo d`即可发布。
 
-# 三、参考
+# 参考
 
 https://haoshuai6.github.io/2016-11-25-Hexo-github-cname.html
 

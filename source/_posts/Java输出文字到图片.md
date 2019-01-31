@@ -6,11 +6,11 @@ tags:
 - Java
 - 杂记
 ---
-# 一、描述
+# 描述
 java 的awt工具包里是有图像类(Image)，所以可以读取图像并利用Graphics2D进行操作。但是ImageIO.read()方法读取图片时可能存在不正确处理图片ICC（ICC为JPEG图片格式中的一种头部信息）信息的问题，导致渲染图片前景色时蒙上一层红色，因此需要用JDK提供的Toolkit.getDefaultToolkit()进行操作。
 <!--more-->
 
-# 二、代码
+# 代码
 
 	import javax.imageio.ImageIO;
 	import javax.swing.*;
@@ -81,5 +81,5 @@ java 的awt工具包里是有图像类(Image)，所以可以读取图像并利�
 	    }
 	}
 
-# 三、一些问题
+# 一些问题
 当代码打包上传到Linux服务器的时候，某些字体就无法使用了，所以需要到Winsows下找到对应的字体，最笨的办法就是复制所有的字体，上传到Linux服务器。服务器路径为/usr/java/jdk1.8.0_161/jre/lib/fonts(添加jdk支持的字体)/或者/usr/share/fonts/（添加系统字体）。

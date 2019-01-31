@@ -97,6 +97,7 @@ menu:
   tags: /tags/ || tags
   categories: /categories/ || th
   archives: /archives/ || archive
+  guestbook: /guestbook/
   # schedule: /schedule/ || calendar
   # sitemap: /sitemap.xml || sitemap
   # commonweal: /404/ || heartbeat
@@ -153,6 +154,7 @@ links:
   芋道源码: http://www.iocoder.cn/
   程序猿DD: http://blog.didispace.com/
   张砚池的博客: https://blog.iooo.tech
+  牧码: https://guanpengchn.github.io/
 
 # Sidebar Avatar
 # in theme directory(source/images): /images/avatar.gif
@@ -372,9 +374,9 @@ disqus:
 
 # changyan
 changyan:
-  enable: false
-  appid:
-  appkey:
+  enable: true
+  appid: cyu3U0Aqy
+  appkey: df207b097b8ac4407c32f41807f78fca
 
 
 # Valine.
@@ -398,7 +400,7 @@ valine:
 
 # Support for LiveRe comments system.
 # You can get your uid from https://livere.com/insight/myCode (General web site)
-#livere_uid: your uid
+# livere_uid: MTAyMC80MjQ2My8xOTAxMA==
 
 # Gitment
 # Introduction: https://imsun.net/posts/gitment-introduction/
@@ -509,7 +511,7 @@ facebook_sdk:
 # This plugin depends on Facebook SDK.
 # If facebook_sdk.enable is false, Facebook comments plugin is unavailable.
 facebook_comments_plugin:
-  enable:       false
+  enable:       true
   num_of_posts: 10    # min posts num is 1
   width:        100%  # default width is 550px
   scheme:       light # default scheme is light (light or dark)
