@@ -124,10 +124,17 @@ master分支用于存放页面，source用于存放源代码。
 
 # 参考
 
-https://haoshuai6.github.io/2016-11-25-Hexo-github-cname.html
+[https://haoshuai6.github.io/2016-11-25-Hexo-github-cname.html](https://haoshuai6.github.io/2016-11-25-Hexo-github-cname.html)
 
 个人博客演示地址：
 
-https://blog.guitar-coder.cn/
+[https://blog.guitar-coder.cn/](https://blog.guitar-coder.cn/)
+
+支付宝/微信 二维码生成（app生成的太不美观）：
+[https://cli.im/weixin](https://cli.im/weixin)
+
+图标查询：
+[https://fontawesome.com/icons?d=gallery](https://fontawesome.com/icons?d=gallery)
+
 
 
