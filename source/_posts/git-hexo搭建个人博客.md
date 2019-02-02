@@ -10,7 +10,7 @@ categories: 编程技术
 # 简述
 环境：腾讯云服务器+新网域名，github，hexo
 
-需求：www.guitar-coder.cn指向服务器主站，blog.guitar-coder.cn指向github，写个人笔记和博客。
+需求：[www.guitar-coder.cn](www.guitar-coder.cn)指向服务器主站，[blog.guitar-coder.cn](blog.guitar-coder.cn])指向github.io，写个人笔记和博客。
 <!-- more -->
 
 # 步骤
@@ -18,8 +18,7 @@ categories: 编程技术
 下载nodeJS，官网https://nodejs.org/en/
 
 windows或者mac可以下载可执行文件直接一路安装即可，当然mac也可以执行`brew install node`,至于linux下，这里以二进制binary为例（来源于官网教程）：
-
-
+```bash
 	#定义linux变量
 	VERSION=v8.11.4
 	DISTRO=linux-x64
@@ -38,8 +37,7 @@ windows或者mac可以下载可执行文件直接一路安装即可，当然mac�
 	
 	sudo ln -s /usr/local/lib/nodejs/node-$VERSION/bin/npm /usr/bin/npm
 	
-	sudo ln -s /usr/local/lib/nodejs/node-$VERSION/bin/npx /usr/bin/npx
-
+	sudo ln -s /usr/local/lib/nodejs/node-$VERSION/bin/npx /usr/bin/npx```
 为了方便访问，使用国内淘宝的npm镜像：
 
 `npm install -g cnpm --registry=https://registry.npm.taobao.org﻿​`
