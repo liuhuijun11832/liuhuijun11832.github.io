@@ -12,7 +12,7 @@ tags:
 ```java
 	long startTime = System.currentMilles();
 			...
-	long endTime = System.currentMiles();
+	long endTime = System.currentMilles();
 	LOGGER.info("执行时长{}",endTime-startTime);
 	```
 每个service层代码几乎都有这么两句，实在是臃肿。
