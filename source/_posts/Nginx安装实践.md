@@ -148,7 +148,7 @@ Location block 的基本语法形式是：
 location [=|~|~*|^~|@] pattern { ... }
 [=|~|~*|^~|@] 被称作 location modifier ，这会定义 Nginx 如何去匹配其后的 pattern ，以及该 pattern 的最基本的属性（简单字符串或正则表达式）。
 关于 location modifier
-## 1. =
+## =
 这会完全匹配指定的 pattern ，且这里的 pattern 被限制成简单的字符串，也就是说这里不能使用正则表达式。
 
 
@@ -554,7 +554,7 @@ master机输入命令：
 以上配置每次主机启动都会抢占master，可以配置非抢占式，其配置方法是在vrrp_instance VI_1 模块中加入nopreempt参数，并将两台机器都作为从机，如图：
 ![](Nginx安装实践/1538230569254_8.png)
 两个keepalived节点都启动后，默认都是BACKUP状态，双方在发送组播信息后，会根据优先级来选举一个MASTER出来。由于两者都配置了nopreempt，所以MASTER从故障中恢复后，不会抢占virtual IP。这样会避免VIP切换可能造成的服务延迟。
-### Nginx HA主主
+## Nginx HA主主
 其原理就是两台机器互为master和backup。系统信息与主从部分基本保持一致。对于Virtual IP，由于两台机器互为主备，因此一个Virtual IP 肯定不能满足要求了，角色关系如下：
 
 	服务器1:192.168.1.63
