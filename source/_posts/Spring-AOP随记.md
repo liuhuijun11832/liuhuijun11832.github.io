@@ -56,15 +56,19 @@ execution﻿​表达式即可，可以参考https://docs.spring.io/spring/docs/
 	throws-pattern?)
 对应中文为execution(访问修饰符表达式？ 返回值类型表达式 名称表达式（参数表达式）异常表达式? )，除了名称表达式，其他表达式都可以不写，下面介绍几种常用的特殊通配符：
 访问修饰符表达式：不写代表所有访问修饰符；
-返回值类型表达式：*在返回类型通配符中代表所有返回值类型；
-名称通配符：*在名称通配符中是代表所有的意思，.在名称通配符中代表当前包或者当前类，..两个点表示当前包以及子包；
-参数表达式：不写表示无参方法，..表示0或多个参数，*表示任何类型的一个参数，那么*，String就表示一个任意类型的参数+一个String类型的参数；
+返回值类型表达式：\*在返回类型通配符中代表所有返回值类型；
+名称通配符：\*在名称通配符中是代表所有的意思，.在名称通配符中代表当前包或者当前类，..两个点表示当前包以及子包；
+参数表达式：不写表示无参方法，..表示0或多个参数，\*表示任何类型的一个参数，那么\*，String就表示一个任意类型的参数+一个String类型的参数；
 异常表达式：格式为throws(*)表示所有异常。
 那么贴出切点定义：
-```java	@Pointcut(value="execution(public*com.blog.controller
-    ..*.*(..))")
+
+
+```java	
+@Pointcut(value="execution(public*com.blog.controller..*.*(..))")
 	public void pointCut(){
-	}```
+	
+	}
+```
  step3：定义增强处理，首先确认通知类型：
 前置通知[Before advice]：在连接点前面执行，前置通知不会影响连接点的执行，除非此处抛出异常。 
 
@@ -80,9 +84,11 @@ execution﻿​表达式即可，可以参考https://docs.spring.io/spring/docs/
  
 环绕通知[Around advice]：环绕通知围绕在连接点前后，比如一个方法调用的前后。这是最强大的通知类型，能在方法调用前后自定义一些操作。环绕通知还需要负责决定是继续处理join point(调用ProceedingJoinPoint的proceed方法)还是中断执行。 
 我的需求是在返回以后都要记录访问来源，所以使用返回通知类型，代码如下：
+
+
 ```java
 	@After(value="pointCut())")
-	publicvoidafter(JoinPointjoinPoint){
+	public void after(JoinPoint joinPoint){
 		PvLogpvLog=newPvLog();
 		LOGGER.info("当前请求的方法名:{}",joinPoint.getSignature().getName());
 		HttpServletRequestrequest=((ServletRequestAttributes)RequestContextHolder.getRequestAttributes()).getRequest();
@@ -93,7 +99,8 @@ execution﻿​表达式即可，可以参考https://docs.spring.io/spring/docs/
 		pvLog.setVisitTime(1);
 		pvLog.setIp(realIp);
 		pvLogMapper.insert(pvLog);
-	}```
+	}
+```
 	
 需要记住，执行这个方法传入参数不能是注解中定义的value里没有的，例如我代码中想传两个参数一个是连接点，一个是注解，所以value中就是pointCut()和@annotation()，如果你想传入一个参数那么就是args(参数名)。
 拓展一下切入点指示符（PCD）：
@@ -108,6 +115,8 @@ spring aop可以使用&& ，|| ，！来对PCD进行逻辑运算。
 step1:定义一个切面；
 step2:定义切点和增强，这里我想更灵活一些，通过注解实现我指定的方法来监控执行时长，因此我需要一个自定义注解。
 这是打印日志的级别：
+
+
 ```java
 	public enum  LoggerEnums {
 
@@ -118,6 +127,8 @@ step2:定义切点和增强，这里我想更灵活一些，通过注解实现�
 
 	}```
 自定义注解：
+
+
 ```java
 	@Documented
 	@Target({ElementType.METHOD})
@@ -134,6 +145,8 @@ step2:定义切点和增强，这里我想更灵活一些，通过注解实现�
 @Inherited：该注解是否允许被继承；
 @Target：该注解表示可以被写在什么位置，枚举类型，常用有：TYPE表示接口、类、枚举、注解；METHOD表示方法，FIELD表示字段或枚举常量，PARAMETER表示方法参数，CONSTRUCTOR表示构造函数；
 @Rentention：表示保留级别，分别有RESOURCE（只存在于源码，如@Override和@SuppressWarnings），CLASS（存在于源码和CLASS文件中），RUNTIIME（保留到运行时）
+
+
 ```java
 	@Component
 	@Aspect
@@ -187,7 +200,10 @@ step2:定义切点和增强，这里我想更灵活一些，通过注解实现�
 	}```
 
 数据源配置：
+
+
 	```java
+	@EnableAspectJAutoProxy
 	@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 	@MapperScan("com.blog.mapper")
 	public class MyBlogApplication {
@@ -237,13 +253,16 @@ step2:定义切点和增强，这里我想更灵活一些，通过注解实现�
 		public static void main(String[] args) {
 			SpringApplication.run(MyBlogApplication.class, args);
 		}
-	}```
+	}
+```
 
 ## 场景3：动态切换﻿﻿数据源
 
 step1:定义切面；
 step2:
 定义切换数据源方法（假设你已经定义了两个DataSource的Spring Bean），即自定义一个数据源key的获取方法，数据源在mybatis中的表现形式就是：
+
+
 ```java
 	public class DataSourceContextHolder {
 
@@ -271,6 +290,8 @@ step2:
 	}```
 	
 使用自定义注解：
+
+
 ```java
 	@Target(value = {ElementType.TYPE,ElementType.METHOD})
 	@Retention(RetentionPolicy.RUNTIME)
@@ -282,6 +303,8 @@ step2:
 	}
 ```
 定义切点和增强：
+
+
 ```java
 	@Component
 	@Aspect
@@ -355,7 +378,10 @@ step2:
 	      jdbc-url: jdbc:mysql:/0.0.0.0:3306/blog?useUnicode=true&characterEncoding=UTF-8&zeroDateTimeBehavior=convertToNull&useSSL=false&allowMultiQueries=true
 ```
 然后启动类需要禁用spring boot的单数据源自动配置，并且注册两个数据源和动态数据源如下：
+
+
 ```java
+	@EnableAspectJAutoProxy
 	@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
 	@MapperScan("com.blog.mapper")
 	public class MyBlogApplication {
@@ -405,9 +431,14 @@ step2:
 		public static void main(String[] args) {
 			SpringApplication.run(MyBlogApplication.class, args);
 		}
-	}```
-如果不想改变spring 的配置文件的数据库连接url，也可以先初始化一个DatasourceProperties的bean，然后利用这个spring 读取的配置文件将其中一些参数传递给HikariDataSource，如下：
+	}
 ```
+
+
+如果不想改变spring 的配置文件的数据库连接url，也可以先初始化一个DatasourceProperties的bean，然后利用这个spring 读取的配置文件将其中一些参数传递给HikariDataSource，如下：
+
+
+```java
 	@Bean(name="ds2Prop")
 	 @ConfigurationProperties(prefix = "spring.datasource.db2")
 	 public DataSourceProperties dataSource2(){
@@ -418,5 +449,6 @@ step2:
 	 	return dataSource2().initializeDataSourceBuilder().type(HikariDataSource.class).build();
 	 }
 ```
+
 总结：多数据源配置稍微麻烦一些，第一步建立一个线程安全的数据源标识符存放和切换的类，第二步是一个继承了AbstractRoutingDataSource的子类用来重写父类方法来获取自定义数据源标识，第三步是建立多个DataSource的Bean，以及动态切换数据源的spring bean，并将多个数据源放入目标数据源的map里，加入事物控制，最后建立切面，通过读取连接点的注解或者连接点的类上的注解，在前置通知里调用工具类进行切换标识。
 

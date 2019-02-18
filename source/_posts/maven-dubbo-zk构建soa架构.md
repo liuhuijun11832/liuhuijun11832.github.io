@@ -4,7 +4,7 @@ categories: 编程技术
 date: 2019-02-03 12:24:00
 tags: Java
 ---
-简述
+# 简述
 dubbo 是目前国内最广泛的rpc框架，官网见 [http://dubbo.apache.org/zh-cn/index.html](http://dubbo.apache.org/zh-cn/index.html)，建议直接对着官网开发文档配置较为可靠。
 dubbo常用于soa架构，soa架构和微服务架构均是分布式系统的两种实践，从某种程度而言，soa架构是微服务架构的超集，或者说微服务是soa的一个变种。
 <!--more-->

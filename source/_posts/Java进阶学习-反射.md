@@ -1,6 +1,6 @@
 ---
 title: Java进阶学习-反射
-categories: 编程技术
+categories: 学习笔记
 date: 2019-02-04 23:46:20
 tags: Java
 ---
