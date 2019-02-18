@@ -157,8 +157,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 其中，@ControllerAdvice支持的限定范围有：
 
 1. `@ControllerAdvice(annotation=RestController.clcas)`，按注解；
-2.` @ControllerAdvice("org.example.controllers")`，按包名；
-3. `@ControllerAdvice(assignableTypes={ControllerInterface.class,AbstractController.class})`，按类型。
+1. ` @ControllerAdvice("org.example.controllers")`，按包名；
+1. `@ControllerAdvice(assignableTypes={ControllerInterface.class,AbstractController.class})`，按类型。
 
 如果在Controller里某个方法直接使用`@ExceptionHandler(RuntimeException.class)`注解，则表示该异常处理只针对于该Controller。
 
