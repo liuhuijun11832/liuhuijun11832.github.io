@@ -15,7 +15,7 @@ timezone:
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
 url: https://blog.guitar-coder.cn
 root: /
-permalink: :year/:month/:day/:title/
+permalink: :title.html
 permalink_defaults:
 
 # Directory
@@ -86,6 +86,16 @@ search:
   field: post
   format: html
   limit: 10000
+# 自动生成sitemap
+sitemap:
+  path: sitemap.xml
+baidusitemap:
+  path: baidusitemap.xml
+nofollow:
+    enable: true
+    exclude:
+    - www.guitar-coder.cn
+    - blog.guitar-coder.cn
 # for yilia theme
 # jsonContent:
 #     meta: false

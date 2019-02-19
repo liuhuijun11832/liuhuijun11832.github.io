@@ -1,0 +1,8 @@
+User-agent: * Allow: /
+Allow: /archives/
+Disallow: /vendors/
+Disallow: /categories/
+
+
+Sitemap: https://blog.guitar-coder.cn/sitemap.xml
+Sitemap: https://blog.guitar-coder.cn/baidusitemap.xml
