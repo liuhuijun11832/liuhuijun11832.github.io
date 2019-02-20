@@ -1,6 +1,5 @@
 ---
 title: 关于我
-comments: false
 date: 2019-01-28 17:25:25
 ---
 # 人数属性

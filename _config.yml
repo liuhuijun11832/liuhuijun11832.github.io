@@ -97,7 +97,7 @@ baidusitemap:
   path: baidusitemap.xml
 baidu_url_submit:
   count: 1 ## 提交最新的一个链接
-  host: https://blog.guitar-coder.cn ## 在百度站长平台中注册的域名
+  host: http://coding.guitar-coder.cn ## 在百度站长平台中注册的域名
   token: I49SaljtD3cWNV7Z ## 请注意这是您的秘钥， 所以请不要把博客源代码发布在公众仓库里!
   path: baidu_urls.txt ## 文本文档的地址， 新链接会保存在此文本文档里
 nofollow:
@@ -105,6 +105,29 @@ nofollow:
     exclude:
     - www.guitar-coder.cn
     - blog.guitar-coder.cn
+  # hexo-neat
+# 博文压缩
+neat_enable: true
+# 压缩html
+neat_html:
+  enable: true
+  exclude:
+# 压缩css  
+neat_css:
+  enable: true
+  exclude:
+    - '**/*.min.css'
+# 压缩js
+neat_js:
+  enable: true
+  mangle: true
+  output:
+  compress:
+  exclude:
+    - '**/*.min.js'
+    - '**/jquery.fancybox.pack.js'
+    - '**/index.js'  
+    - '**/clicklove.js'
 # for yilia theme
 # jsonContent:
 #     meta: false
