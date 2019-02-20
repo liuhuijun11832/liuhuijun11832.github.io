@@ -7,6 +7,7 @@ keywords:	[Jenkins,CI,CD]
 description: Jenkins部署安装教程。
 ---
 <script type="text/javascript" src="/js/src/baidupush.js"></script>
+
 # 描述
 Jenkins是一个开源的自动部署服务器，提供了上百个插件用于自动构建、部署、发布任务项目。本文描述的是Jenkins本地部署以及远程部署等工作实现持续集成功能。[官网传送门](https://jenkins.io/)
 
