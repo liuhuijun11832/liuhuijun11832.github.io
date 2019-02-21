@@ -8,7 +8,7 @@ subtitle:
 description: 热爱coding的指弹玩家、摄影玩家
 keywords: Java,Linux
 author: 刘会俊
-language: zh-Hans
+language: zh-CN
 timezone:
 
 # URL
@@ -73,7 +73,7 @@ pagination_dir: page
 # Extensions
 ## Plugins: https://hexo.io/plugins/
 ## Themes: https://hexo.io/themes/
-theme: next
+theme: next6
 
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
@@ -128,6 +128,11 @@ neat_js:
     - '**/jquery.fancybox.pack.js'
     - '**/index.js'  
     - '**/clicklove.js'
+symbols_count_time:
+  symbols: true
+  time: true
+  total_symbols: true
+  total_time: true
 # for yilia theme
 # jsonContent:
 #     meta: false
