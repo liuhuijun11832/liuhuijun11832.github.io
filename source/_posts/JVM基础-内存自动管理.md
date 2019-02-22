@@ -186,6 +186,12 @@ Garbage-First，整个堆的收集器，基于复制算法和标记整理算法�
 ![](JVM基础-内存自动管理/1545900365767_5.png)
 G1把整个堆分成大小相等Region，Region之间通过复制算法，整体通过标记-整理算法。每个Region都会有一个Remembered Set（下文简称R Set），在对Reference类型数据进行写操作时会产生一个Write Barrier暂时中断写操作，检查Reference引用的对象是否处于两个不同的Region之间，如果是，通过CardTable把相关引用信息记录到被引用对象所属的Region的R Set中，进行内存回收时，在GC根节点的枚举范围中加入R Set即可保证不扫描整个堆也没有遗漏。
 收集过程大体类似于CMS的过程，区别在于最终标记阶段，这一阶段G1会将对象变动记录记录在每个标记线程的R set logs中，最后再合并到R Set里。
+`-XX：+UseG1GC`：启用G1 GC。JDK7和JDK8要求必须显示申请启动G1 GC，JDK可能会设置G1 GC为默认GC选项，也有可能会退到早期的Parallel GC，这个也请关注吧，JDK9预计2017年正式发布；
+
+`-XX：G1NewSizePercent`：初始年轻代占整个Java Heap的大小，默认值为5%；
+
+`-XX：G1MaxNewSizePercent`：最大年轻代占整个Java Heap的大小，默认值为60%；
+
 # GC日志浅析
 
 	[GC(MetadataGCThreshold)[PSYoungGen:22881K->5109K(71680K
@@ -291,10 +297,11 @@ Memory Map for Java
 options列表：
 
 |选项	|作用|
+|---|---|
 |-dump|生成Java堆转储快照，格式为-dump:[live,]format=b,file=<filename>|
 |-finalizerinfo	|显示在F-Queue中等Finalizer线程执行finalize方法的对象，只在Linux/Solaris下有效|
--heap	显示Java堆详细信息，如回收器、参数配置、分代状况等，只在Linux/Solaris下有效|
--histo	显示堆中对象统计信息，包括类、示例数量、合计容量
+|-heap|显示Java堆详细信息，如回收器、参数配置、分代状况等，只在Linux/Solaris下有效|
+|-histo|显示堆中对象统计信息，包括类、示例数量、合计容量|
 ![](JVM基础-内存自动管理/1545978971259_3.png)
 
 Minor GC：新生代GC，速度较快
