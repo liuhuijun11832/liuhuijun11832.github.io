@@ -411,5 +411,5 @@ GitLab Flow在GitHub Flow的基础上做了改良，额外衍生出三个子类�
 
 缺点：如果不及时合并，那么特性分支合并到主干会比较麻烦；如果要做CI/CD，需要对不同分支配备不同的构建环境。
  
-# 致谢
-感谢廖雪峰git教程:[https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000](https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000)，以及阮一峰git常用命令清单：[http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)，文中大量借用并参考，致谢。
+# 参考
+参考廖雪峰git教程:[https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000](https://www.liaoxuefeng.com/wiki/0013739516305929606dd18361248578c67b8067c8c017b000)，以及阮一峰git常用命令清单：[http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html](http://www.ruanyifeng.com/blog/2015/12/git-cheat-sheet.html)，文中大量借用并参考，致谢。
