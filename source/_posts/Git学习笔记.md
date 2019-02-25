@@ -71,7 +71,7 @@ git有三个区：
 
 1. 创建SSH Key。在用户主目录下，看看有没有.ssh目录，如果有，再看看这个目录下有没有id_rsa和id_rsa.pub这两个文件，如果已经有了，可直接跳到下一步。如果没有，打开Shell（Windows下打开Git Bash），创建SSH Key：`ssh-keygen -t rsa -C `，"liuhuijun\_2017@163.com"生成密钥对（记住邮箱那里要填自己在远程仓库的标识），找到.ssh目录找到id\_rsa（私钥）和id\_rsa.pub（公钥），复制公钥里的内容。
 2. 登录代码托管网站，点击“Add SSH Key”，粘贴刚刚复制的内容。
-3. 将本地工作区添加远程仓库，名为origin。git remote add origin git@gitee.com:guitar_coder/git-learning.git（SSH方式）或者 git remote add origin https://gitee.com/guitar\_coder/git-learning.git（HTTPS方式）。
+3. 将本地工作区添加远程仓库，名为origin。`git remote add origin git@gitee.com:guitar_coder/git-learning.git（`SSH方式）或者 `git remote add origin https://gitee.com/guitar\_coder/git-learning.git`（HTTPS方式）。
 		
 		git pull:[origin] [remote-branch]:[local-branch]，如果参数全部带上，表示从origin主机的remote-branch更新代码到本地的local-branch分支，相当于git fetch+git merge。
 		
