@@ -126,6 +126,7 @@ vim /etc/security/limits.conf
 
 * hard nproc 4096
 ```
+然后重新登陆用户即可。
 ## 安装elsaticsearch-head ##
 es-head是一个小型的es监控平台，通过es的9200端口的rest Api，图形化展示es存储的数据。安装方式如下：
 
