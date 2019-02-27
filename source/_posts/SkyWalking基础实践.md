@@ -61,13 +61,11 @@ curl http://localhost:9200/
 ```
 此处的es配置如下，配置文件为config/elasticsearch.yml:
 
-	cluster.name: es-sw-1
-	node.name: es-sw-1
-	path.data: /data/es
-	path.logs: /logs/es
+	cluster.name: sw-es
+	node.name: node-1
 	bootstrap.memory_lock: false
 	bootstrap.system_call_filter: false
-	network.host: 127.0.0.2
+	network.host: 0.0.0.0
 	http.port: 9200
 	http.cors.enabled: true
 	http.cors.allow-origin: "*"
@@ -76,9 +74,9 @@ curl http://localhost:9200/
 
 	[root@izm5edc07yhw50o7ku5zh3z ~]# curl http://localhost:9200/
 	{
-	  "name" : "es-sw-1",
-	  "cluster_name" : "elasticsearch",
-	  "cluster_uuid" : "bYc9kzvTTfGBx5LgKro6KQ",
+	  "name" : "node-1",
+	  "cluster_name" : "sw-es",
+	  "cluster_uuid" : "srNhViiWSmOfKgrdaIHOvA",
 	  "version" : {
 	    "number" : "6.6.1",
 	    "build_flavor" : "default",
@@ -93,6 +91,41 @@ curl http://localhost:9200/
 	  "tagline" : "You Know, for Search"
 	}
 
+注意：
+
+默认的启动日志在es目录下的logs/里，日志名为配置文件里的${cluster_name}.log。如果出现`max vitural memory areas vm.max.map.count [65530] is too low`的warn或者error，可以执行以下命令：
+
+```bash
+##第一种
+sudo sysctl -w vm.max_map_count=262144
+##第二种
+echo "vm.max_map_count=262144" >> /etc/sysctl.conf
+sysctl -p
+```
+如果出现`max file descriptors[65535] for elasticsearch process it too low,increase to at lease [65536]`，可以执行以下命令：
+
+```bash
+##查看硬件限制
+ulimit -Hn
+##修改限制
+vim /etc/security/limits.conf
+##添加以下两行，*表示所有用户，也可以指定某个用户
+* soft nofile 65536
+
+* hard nofile 65536 
+##或者添加以下几行,提升更多限制
+* soft memlock unlimited
+
+* hard memlock unlimited
+
+* soft nofile 65536
+
+* hard nofile 65536
+
+* soft nproc 2048
+
+* hard nproc 4096
+```
 ## 安装elsaticsearch-head ##
 es-head是一个小型的es监控平台，通过es的9200端口的rest Api，图形化展示es存储的数据。安装方式如下：
 
@@ -133,7 +166,7 @@ storage:
 
 将skywalking解压文件夹中的agent文件夹拷贝到需要监控的应用所在的服务器，更改agent/config目录下的配置文件，重点修改如下配置，其中localhost是skywalking主程序中配置的地址：
 
-	agent.service_name=${SW_AGENT_NAME:yyfax-fs}
+	agent.service_name=${SW_AGENT_NAME:myblog}
 	collector.backend_service=${SW_AGENT_COLLECTOR_BACKEND_SERVICES:localhost:11800}
 
 正常启动java应用时，只需要带上如下参数即可，例如：`java -javaagent:/usr/local/skywalking-agent/skywalking-agent.jar  -jar Myblog.jar`,其中-javaagent的内容就是上面拷贝的sw agent所在的位置。
