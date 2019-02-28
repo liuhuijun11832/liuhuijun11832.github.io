@@ -6,7 +6,7 @@ tags:
 - Docker
 - CI/CD
 keywords: [CI,CD,Docker]
-description: 构建/编排自己的Docker应用
+description: 构建和编排自己的Docker应用
 ---
 # Dockerfile
 通过dockerfile实现秒级镜像迁移。
@@ -17,7 +17,7 @@ description: 构建/编排自己的Docker应用
 
 组成：
 
-注释行+指令行
+注释行加指令行。
 
 作用
 
@@ -49,9 +49,9 @@ description: 构建/编排自己的Docker应用
 ### RUN
 用于向控台发送命令。
 
-		RUN<command>
+	  RUN<command>
 		RUN["executable","param1","param2"]
-支持\换行。
+支持反斜杠换行。
 
 ### ENTRYPOINT/CMD
 
@@ -81,7 +81,7 @@ description: 构建/编排自己的Docker应用
 
 	COPY[--chown=<user>:<group>]<src>...<dest>
 	ADD[--chown=<user>:<group>]<src>...<dest>
-<src>和<dest>外可以加""。
+src和dest外可以加""。
 两者的区别在于：**ADD能够使用URL作为src，并且识别到源文件为压缩包时自动解压。**
 
 `docker build <path>`path可以为本地路径或者URL路径，但并不是dockerfile文件路径，而是构建环境目录，-f可以指定dockerfile文件位置，未指定的话默认就在环境目录下去找，-t可以指定新生成镜像的名称。
@@ -90,15 +90,16 @@ description: 构建/编排自己的Docker应用
 定义一个变量，变量只可以在build时传进来，只在当前镜像内有效。
 例如dockerfile如下：
 
-	FROM debian:stretch-slim
-	...
-	ARG TOMCAT_MAJOR
-	ARG TOMCAT_VERSION
-	...
-	RUN wget -0 tomcat.tar.gz "http//...$TOMCAT_MAJOR:$TOMCAT_VERSION..."
-	...﻿​
-
-那么在build时，可以这样传入参数：`docker build --build-arg TOMCAT_MAJOR=8 --build-arg TOMCAT_VERSION=8.0.53 ./`
+```
+FROM debian:stretch-slim
+...
+ARG TOMCAT_MAJOR
+ARG TOMCAT_VERSION
+...
+RUN wget -0 tomcat.tar.gz "http//...$TOMCAT_MAJOR:$TOMCAT_VERSION..."
+...﻿​
+```
+在build时，可以这样传入参数：`docker build --build-arg TOMCAT_MAJOR=8 --build-arg TOMCAT_VERSION=8.0.53 ./`
 
 ### ENV
 定义一个环境变量，环境变量在所有基于此镜像的镜像内都生效，并且可以指定值。
@@ -110,7 +111,7 @@ description: 构建/编排自己的Docker应用
 	...
 	RUN wget -0 tomcat.tar.gz "http//...$TOMCAT_MAJOR:$TOMCAT_VERSION..."
 	...
-取值与ARG一致，使用💲取值符，当ARG与ENV的名字重复时，ENV会覆盖ARG，同时ENV的值也可以通过运行时选项-e或者-env传入：
+取值与ARG一致，使用美元符号取值符，当ARG与ENV的名字重复时，ENV会覆盖ARG，同时ENV的值也可以通过运行时选项-e或者-env传入：
 `docker run -e <key>=<value> <image>`。
 
 ## 指令实战
@@ -132,7 +133,7 @@ Spring Boot项目启动时是默认以/tmp目录作为tomcat的工作目录的�
 使用COPY或者ADD命令拷贝程序到镜像文件系统中，然后最后一步是主要指令，需要记住：第一个是命令，每多一条参数，请多一个""（双引号），不然会报Unrecognized option: -jar -Dlogging.file=/spring.log（无法识别选项）的错。最后一步：docker build ./ -t myblog开始构建镜像，记住镜像名只能小写。
 ### 技巧
 
-	#对于能够合并的多条指令，推荐合并。以下两种效果时一样的，但是推荐第一种
+	#对于能够合并的多条指令，推荐合并。以下两种效果时一样的，但是推荐第一种
 	RUN apt-get update;\
 	    apt-get istall -y --no-install-recommends $fetchDeps;\
 	    rm -rf /var/lib/apt/lists/*;
@@ -158,7 +159,8 @@ CMD /bin/exec args
 ##以上两句等于：/bin/sh -c /bin/ep arge /bin/sh -c /bin/exec args
 ...﻿​
 ```
-> 注：两个指令如果不带中括号，那么默认执行方式是/bin/sh -c [中括号里参数]
+
+注：两个指令如果不带中括号，那么默认执行方式是/bin/sh -c [中括号里参数]
 
 可以观摩Docker Hub里更多大佬们写的Dockerfile。
 

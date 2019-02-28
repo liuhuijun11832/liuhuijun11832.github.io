@@ -133,6 +133,11 @@ symbols_count_time:
   time: true
   total_symbols: true
   total_time: true
+ # algolia搜索服务
+algolia:
+  applicationID: Z2W38WTNSC
+  indexName: hexo-blog
+  chunkSize: 5000
 # for yilia theme
 # jsonContent:
 #     meta: false
