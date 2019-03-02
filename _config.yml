@@ -13,7 +13,7 @@ timezone:
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://coding.guitar-coder.cn
+url: http://blog.guitar-coder.cn
 root: /
 permalink: :title.html
 permalink_defaults:
@@ -135,8 +135,9 @@ symbols_count_time:
   total_time: true
  # algolia搜索服务
 algolia:
-  applicationID: Z2W38WTNSC
-  indexName: hexo-blog
+  applicationID: 'Z2W38WTNSC'
+  apiKey: '7df7d53c7892e2ae907462c4158eca2d'
+  indexName: 'hexo-blog'
   chunkSize: 5000
 # for yilia theme
 # jsonContent:
