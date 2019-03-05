@@ -17,6 +17,7 @@ description: 阅读极客专栏所记笔记第二部分，部分实战应用
 
 `alter table t add index index1(name);`
 `alter table t add index index2(name(n));`
+<!--more-->
 
 两种不同方式的索引结构如下：
 ![](MySql实战45讲二/1548319594904_2.png)

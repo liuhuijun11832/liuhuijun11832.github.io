@@ -9,7 +9,8 @@ keywords: [MySql]
 description: 记录一下MySql的Explain的用法
 ---
 # 简述
-用于记录一下mysql工作中常用到的分析方法，随时更新。
+用于记录一下mysql工作中的Explain用法，随时更新。
+<!--more-->
 # explain
 作用：分析查询语句的执行计划；
 示例：在查询语句前面加explain即可
