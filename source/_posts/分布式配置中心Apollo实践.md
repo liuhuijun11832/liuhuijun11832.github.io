@@ -23,8 +23,8 @@ Apollo（阿波罗）是携程框架部门研发的分布式配置中心，能�
 参阅官方教程进行部署：[https://github.com/ctripcorp/apollo/wiki/%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97](https://github.com/ctripcorp/apollo/wiki/%E5%88%86%E5%B8%83%E5%BC%8F%E9%83%A8%E7%BD%B2%E6%8C%87%E5%8D%97)
 其部署图如下：
 ![](https://github.com/ctripcorp/apollo/raw/master/doc/images/lyliyongblue-apollo-deployment.png)
-解释一下该图，portal为管理中心，adminservice和configservice共同组成配置服务器，所以可以理解为portal可以只用安装一台，adminservice和confingservice需要在每一个环境中安装一份，同理，potaldb只需要部署一个，而configdb在每一个环境的数据库都需要部署一份，由于成本限制，公司只有A、B两个环境，其中A为开发/测试环境，B为预发布/生产环境。
-
+解释一下该图，portal为管理中心，adminservice和configservice共同组成配置服务器，所以可以理解为portal可以只用安装一台，adminservice和confingservice需要在每一个环境中安装一份，同理，portaldb只需要部署一个，而configdb在每一个环境的数据库都需要部署一份，由于成本限制，公司只有A、B两个环境，其中A为开发/测试环境，B为预发布/生产环境，环境布置好以后，需要在portal-service/confif/apollo-env.properties里配置不同环境的meta信息，并且在
+portalDB的serverconfig表里key为apollo.portal.envs添加所需要的环境，多个环境间以逗号分隔开。
 
 > 注：如果公司服务器环境为阿里云，在获取配置服务器IP地址时，client获取到的可能是服务器内网地址，查看eureka的图形化界面信息，如图：![](分布式配置中心Apollo实践/1540220215486_4.png)
 
