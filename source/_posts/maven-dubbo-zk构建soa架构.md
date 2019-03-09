@@ -286,10 +286,12 @@ dubbo.protocol.port = 20882
 dubbo.protocol.status = server
 //注册中心地址
 dubbo.registry.address = zookeeper://127.0.0.1:2181
-//dubbo扫描的包
+//dubbo扫描的包含@Reference注解或者@Service的包
 dubbo.scan.basePackages  = com.tubitu.service
 dubbo.provider.version=1.0.0
 ```
+业务类代码编写方式与使用spring一致，区别在于@Service注解是由Dubbo提供。
+
 启动类：
 
 
