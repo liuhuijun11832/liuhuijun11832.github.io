@@ -32,7 +32,7 @@ Ubuntu/Debian:
 sudo apt-get install git Centos/RedHat
 ```
 # 教程
-## 基本概念：
+## 基本概念
 git有三个区：
 
 工作区，就是我们写的代码。
