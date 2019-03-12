@@ -52,7 +52,7 @@ mysql> show variables like 'log_%';
 ```
 log_bin为on即代表开启了binlog，basename代表日志名称和路径。
 
-如果没有开启，需要配置my.cnf文件，Linux/MAC系统下的路径为`/etc/my.cnf`，Windows系统下路径为`C:\ProgramData\Mysql\my.ini`，Linux/MAC系统下如果没有这个文件，可以新建一个或者从MySql的安装目录下的support-files里找到名为my-default.cnf文件复制到/etc/下，新增以下配置：
+如果没有开启，需要配置my.cnf文件，Linux/MAC系统下的路径为`/etc/my.cnf`，Windows系统下路径为`C:\ProgramData\MySQL\MySQL Server 5.7\my.ini`，Linux/MAC系统下如果没有这个文件，可以新建一个或者从MySql的安装目录下的support-files里找到名为my-default.cnf文件复制到/etc/下，新增以下配置：
 
 
 ```properties
@@ -86,7 +86,7 @@ update mysql.user set authentication_string=password('qingyun1') where user='roo
 
 flush privileges;
 
---以下有可能需要使用安全模式启动--
+--如果mysql提示需要安全模式启动，参考以下--
 --首先停止服务
 /usr/local/mysql/bin/mysqld stop
 --使用安全模式启动数据库
