@@ -5,7 +5,7 @@ date: 2019-03-09 09:06:59
 tags:
 - Android
 keywords: [Android]
-description: 学习第一行代码所记笔记
+description: 学习《第一行代码》所记笔记
 ---
 # 基本架构 #
 ## Linux内核层 ##
@@ -235,7 +235,7 @@ startActivity(intent);
 或者新建自定义活动用来响应http数据协议：
 
 ```xml
-<!--自定义第三个活动用来响应http数据协议-->
+<!--自定义第三个活动用来响应http数据协议，注意：只有当category包含BROWSABLE类型时，acheme才可以为http-->
         <activity android:name=".ThirdLayoutActivity">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW"/>
