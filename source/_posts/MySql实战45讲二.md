@@ -235,5 +235,151 @@ select * from t limit @Y1，1； // 在应用代码里面取 Y1、Y2、Y3 值，
 select * from t limit @Y2，1；
 select * from t limit @Y3，1；
 ```
+# 查询中的坑
+## 条件查询中的函数
+在查询语句中，即使是单表查询，如果没有用索引或者破坏了索引的有序性，也会导致查询效率极低。
+例如如下语句：
+
+```sql
+mysql> select count(*) from tradelog where month(t_modified)=7;
+
+```
+
+此时在t\_modified这个字段上和主键都存在一个索引，但是由于函数破坏了索引的有序性，导致优化器放弃了走**树搜索**功能，但是它依然会使用索引，遍历主键索引和t\_modified索引发现主键索引大小比t\_modified索引小，所以依然会使用t\_modified，只不过使用的是全索引扫描。
+
+就算不使用函数，使用呢`select * from t where id + 1 = 10000`的这种形式，优化器也会“偷懒”，不使用树搜索，不过可以改为`select * from t where id = 10000 - 1`。
 
 
+## 隐式类型转换
+假如现在表中有个orderId为varchar类型，当使用如下语句时，会触发类型转换：
+
+```sql
+mysql>select * from t where orderId=1112345;
+```
+使用explain可以看到，这条语句使用了全表扫描（type=all）。
+因为上面的语句等同于：
+
+```sql
+mysql>select * from twhere CAST(orderId as signed int)=1112345
+```
+隐式调用了函数操作，使得优化器放弃调用了树搜索。
+
+对于类型转换规则，参考官方文档：[MySql5.7:https://dev.mysql.com/doc/refman/5.7/en/type-conversion.html](https://dev.mysql.com/doc/refman/5.7/en/type-conversion.html)
+
+由此可知：如果当索引类型为int，但是输入的条件为varchar，例如：
+
+```sql
+mysql>select * from t where id = '11111';
+```
+
+由于该字符能直接转换为int，所以不会走全表扫描，还是会走索引。
+
+## 隐式编码转换
+假如现在有两张表，一个订单表order，一个订单详情表order\_detail表，order表中有一个字段order\_detail\_id为varchar类型，用于关联order和order\_detail表。这个时候我们通过订单id去查订单详情，用的就是如下类似语句：
+
+```sql
+select od.* from order o , order_detail od where od.id=o.order_detail_id and o.id = 4;
+```
+> 这个语句中，order为驱动表，order_detail为被驱动表，order\_detail\_id为关联字段。
+
+它的执行步骤是：
+
+1. 根据订单id为4找出订单表中的一行数据；
+2. 在第一步中取出的数据里拿到order_detail_id的值；
+3. 根据order_detail_id去order_detail表里取出数据。
+
+如果在第三步里，两个表的字符集类型不一致，假如订单表里的order_detail_id为utf-8mb4字符集，而详情表里为utf-8字符集，那么就会触发编码转换，utf-8会向上转换为utf-8mb4，因为utf-8其实就是utf-8mb3的别名，它是mb4的子集，也就是说转换为了如下形式：
+
+```sql
+select * from order_detail  where CONVERT(id USING utf8mb4)=o.order_detail_id; 
+```
+也就是说，如果**驱动表的字符集类型大于被驱动表的字符集类型，那么会对查询条件使用函数转换导致全表扫描，如果驱动表的字符集类型小于被驱动表的字符集类型，那么函数转换就加在输入参数上，这样就可以使用索引**；
+
+如下形式就可以使用索引：
+```sql
+select * from order_detail where id = CONVERT(order_detail_id USING utf8mn3);
+```
+
+# 查询慢
+## 等MDL锁
+有一个线程持有MDL锁，阻塞了查询语句。
+
+例如：
+
+```sql
+-- sessionA
+lock table t write;
+-- seeesionB
+select * from t where id = 1234;
+```
+
+查看方式：
+
+```sql
+show processlist;
+```
+结果中带有`Waiting for table metadata lock`即代表该查询语句被MDL锁阻塞，但是持有锁的语句正处于sleep的状态；
+
+处理方式：
+首先需要开启`performance_schema=on`，如果不确定有没有开启可以使用`show variables like 'performance_schema'`，在mysql的配置文件my.cnf里的mysqld下添加`performance_schema=on`，开启该选项大约有10%的性能损耗。
+
+然后通过以下命令查出进程id，kill即可：
+
+```sql
+select blocking_id from sys.schema_table_lock_waits;
+```
+
+## 等flush
+通过`show processlist`查出来的结果里有id这个字段，可以通过这个字段查看具体信息：`select * from information_schema.processlist where id=1;`如果状态为`waiting for table flush`，表示flush操作被阻塞。通常情况下，flush操作有：
+
+```sql
+flush tables t with read lock;
+
+flush tables with read lock;
+
+```
+
+指定表t代表关闭表t，如果没有指定就是关闭所有打开的表。
+
+通常情况下fush操作也是很快的，但是如果它们被阻塞了，可以在`show processlist`中看到，通过方法一中的命令找出pid然后kill即可。
+
+## 等行锁
+```sql
+-- sessionA
+begin;
+update t set c=c+1 where id =1;
+
+-- sessionB
+select * from t where id = 1lock in share mode;
+```
+很明显A一直未提交事务，导致当前读的sessionB阻塞。
+
+通过`show processlist;`可以看到session的state是statistics。如果是5.7的mysql，可以使用如下命令，
+`mysql> select * from t sys.innodb_lock_waits where locked_table='`test`.`t`'\G`可以看到blocking_pid，使用kill 命令杀死即可。
+
+## 慢查询
+有的时候会出现如下这种情况：
+
+```sql
+-- session A
+start transaction with consistent snapshot;
+
+-- session B（执行100万次）
+update t set c = c+1 where id = 1;
+
+-- session A
+select * from t where id = 1;
+select * from t where id = 1 lock in share mode;
+```
+
+上面的语句中，事务A启动时启动了一个一致性视图，然后B执行了一个100万次的增加，生成了100万次的undo log(3变成2，2变成1等等)，此时在A中再次执行一致性读查询即没有加S锁的那条语句，那么查出来的结果需要在当前结果的基础上执行100万次的redo log，得到1返回，而加了S锁的语句直接返回的当前结果。
+
+还有一种慢查询：
+
+假如此时表t中字段b为varchar(10)类型，b同时也是一个索引，其中有10万条数据都是1234567890，而此时执行：`select * from t where b= '1234567890aab'`的过程也十分慢，步骤如下：
+
+1. 在引擎层，做字符阶段，只截出10位进行匹配；
+2. 通过b索引查出符合条件的10万条数据；
+3. 回表，再查出10万条完整数据；
+4. 每次回表查出数据到server层发现不符合条件；
+5. 返回空。
