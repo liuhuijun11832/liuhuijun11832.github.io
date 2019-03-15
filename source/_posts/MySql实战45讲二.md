@@ -57,7 +57,7 @@ InnoDB刷脏页的控制策略：
 ```bash
 fio -filename=/root/1.txt -direct=1 -iodepth 1 -thread -rw=randrw -ioengine=psync -bs=16k -size=500M -numjobs=10 -runtime =10 -group_reporting -name=mytest﻿
 ```
-InnnoDB根据脏页比例和redo log写盘速度会单独算出两个数字，innodb_max_dirty_pages_pct是脏页比例上限，默认是75%，假设当前脏页比例为M，首先需要根据如下公式计算一个0～100之间的数字：
+InnnoDB根据脏页比例和redo log写盘速度会单独算出两个数字，innodb\_max\_dirty\_pages\_pct是脏页比例上限，默认是75%，假设当前脏页比例为M，首先需要根据如下公式计算一个0～100之间的数字：
 
 	F1(M){
     if M>=innodb_max_dirty_pages_pct then
@@ -168,7 +168,7 @@ mysql> select @b-@a;﻿​
 在filesort_summary里，可以看到如下结果（该表匹配数据仅有4条，懒得造数据了，所以在这里mysql会使用全表扫描，使用explain 可以看到type = all，可以使用强制索引`force index(city)`保证using index condition……）:
 
 ![](MySql实战45讲二/1548319595342_4.png)
-rows表示匹配的数据行，examined_rows表示读取的行数，此处是5行，`select @b-@a`在InnoDB的条件下查询的可能是6行，因为查询optimizer_trace的时候要用到临时表，InnoDB把数据从临时表取出来时，会让`Innodb_rows_read`的值加1，可以将`internal_tmp_disk_storage_engine`设置成MyISAM。
+rows表示匹配的数据行，examined\_rows表示读取的行数，此处是5行，`select @b-@a`在InnoDB的条件下查询的可能是6行，因为查询optimizer_trace的时候要用到临时表，InnoDB把数据从临时表取出来时，会让`Innodb_rows_read`的值加1，可以将`internal_tmp_disk_storage_engine`设置成MyISAM。
 
 `number_of_tmp_files`表示使用了多少个临时文件，如果`sort_buffer_size`足够完成排序，那么会优先在内存中完成，所以上图为0。
 
@@ -384,7 +384,7 @@ select * from t where id = 1 lock in share mode;
 4. 每次回表查出数据到server层发现不符合条件；
 5. 返回空。
 
-# Gap lock和Next-key lock
+# mysql对幻读的处理
 记录一下幻读的一个场景（这是假如产生幻读的场景用以引出mysql的解决方案，实际上mysql已经解决该场景）：
 
 ```sql
@@ -442,7 +442,7 @@ commit;
 ```
 由于a最后提交，最后实际的数据为：(0,5,100),(1,5,100),(5,5,100)，而按照我们预期结果应该是(0,5,5),(1,5,5),(5,5,100)。
 
-gap lock：为解决幻读而引入，假如插入(1,1,1)（5,5,5）(9,9,9)三条数据，那么间隙就是(负无穷，1)，(1,5)，(5,9)，(9,正无穷)这四个区间，**对同一个间隙加的锁之间没有冲突，但是往间隙插入一条数据会产生冲突**。
+gap lock：为解决幻读而引入，假如插入(1,1,1)（5,5,5）(9,9,9)三条数据，那么间隙就是(负无穷，1)，(1,5)，(5,9)，(9,正无穷)这四个区间，**对同一个间隙加的锁之间没有冲突，但是往间隙插入一条数据会产生冲突**，只在可重复读（RR）隔离级别下有效。
 
 next-key lock：间隙锁和行锁的合称，是前开后闭区间，即(1，5]，(5，9]等。
 
