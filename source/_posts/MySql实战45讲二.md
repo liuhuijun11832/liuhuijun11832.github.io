@@ -383,3 +383,72 @@ select * from t where id = 1 lock in share mode;
 3. 回表，再查出10万条完整数据；
 4. 每次回表查出数据到server层发现不符合条件；
 5. 返回空。
+
+# Gap lock和Next-key lock
+记录一下幻读的一个场景（这是假如产生幻读的场景用以引出mysql的解决方案，实际上mysql已经解决该场景）：
+
+```sql
+--表t（id,c,d）中数据(5,5,5)，(0,0,0)
+-- session a
+begin;
+select * from t where d=5 for update;
+
+-- session b
+update t set d = 5 where id = 0;
+
+-- session a
+select * from t where d=5 for update;
+
+-- session c
+insert into t  value (1,1,5)
+
+-- session a
+select * from t where d = 5 for update;
+commit;
+```
+a第一次查询的时候，只有(5,5,5)一条数据;
+
+第二次查询，有(0,0,5)(5,5,5)两条数据；
+
+第三次查询，有(0,0,5)(5,5,5)(1,1,5)三条数据。
+
+由于三次使用的都是当前读并且加上写锁，因此会出现这种幻读情况，它们会有以下问题：
+
+1. 破坏语义：在a第一次查询的时候，只是对id等于5的那一行加了写锁，这意味着可以将b中，id=0的那一行的d改为5，破坏了a第一次查询时“对所有d=5的行加上写锁”的声明；
+2. 破坏数据一致性：包括日志和数据的一致性。新加以下两行操作：
+
+```sql
+--表t（id,c,d）中数据(5,5,5)，(0,0,0)
+-- session a
+begin;
+select * from t where d=5 for update;
+
+-- session b
+update t set d = 5 where id = 0;
+-- 新加
+update t set c =5 where id = 0;
+
+-- session a
+select * from t where d=5 for update;
+
+-- session c
+insert into t  value (1,1,5);
+-- 新加
+update t set c = 5 where id = 1;
+
+-- session a
+select * from t where d = 5 for update;
+commit;
+```
+由于a最后提交，最后实际的数据为：(0,5,100),(1,5,100),(5,5,100)，而按照我们预期结果应该是(0,5,5),(1,5,5),(5,5,100)。
+
+gap lock：为解决幻读而引入，假如插入(1,1,1)（5,5,5）(9,9,9)三条数据，那么间隙就是(负无穷，1)，(1,5)，(5,9)，(9,正无穷)这四个区间，**对同一个间隙加的锁之间没有冲突，但是往间隙插入一条数据会产生冲突**。
+
+next-key lock：间隙锁和行锁的合称，是前开后闭区间，即(1，5]，(5，9]等。
+
+缺点：
+
+1. 锁范围更大导致了性能下降；
+1. 并发高的时候导致死锁，举例来说：会话A和会话B同时对id在(1,5)之间的间隙锁加锁，当A和B同时插入一条id为4的数据，A和B相互等待导致死锁。
+
+
