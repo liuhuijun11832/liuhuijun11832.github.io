@@ -1,8 +1,15 @@
 ---
-title: maven+dubbo+zk构建soa架构
+title: Maven+Dubbo+ZK构建soa架构
 categories: 编程技术
 date: 2019-02-03 12:24:00
-tags: Java
+tags: 
+- Java
+- Maven
+- Dubbo
+- 分布式
+- 随记
+keywords: [Java,Maven,Dubbo,SOA]
+description: 记录搭建dubbo的一个分布式应用
 ---
 # 简述
 dubbo 是目前国内最广泛的rpc框架，官网见 [http://dubbo.apache.org/zh-cn/index.html](http://dubbo.apache.org/zh-cn/index.html)，建议直接对着官网开发文档配置较为可靠。
