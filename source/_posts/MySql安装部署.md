@@ -49,9 +49,6 @@ mysql> show variables like '%char%';
 +—————————————+--------------------------------------------------------+
 ```
 
-**注：除修改密码和查询结果的操作外，其他操作必须在停止数据库的情况下进行。
-假如忘记了数据库密码或者不知道数据库密码，可以进入/etc/my.cnf文件[mysqld] 下加入了skip-grant-tables，输入密码的时候就可以不输入直接进入。修改密码以后再取消那段语句。**
-
 ## CentOS
 使用的是RPM包的方式，下载完mysql的tar包，然后解压开能看到很多mysql-community-开头的.rpm文件，使用如下命令就可以安装`sudo yum install mysql-community-{server,client,common,libs}-* --exclude='*minimal*'` 当然要排除最小安装，然后需要找到临时密码才能进入数据库改密码：`sudo grep 'temporary password' /var/log/mysqld.log`找到密码就可以使用`mysql -uroot -p` 登陆，然后修改密码:
 `mysql> ALTER USER 'root'@'localhost' IDENTIFIED BY 'MyNewPass4!';`
@@ -59,6 +56,9 @@ mysql> show variables like '%char%';
 如果需要远程互联网访问的话，需要使用如下语句开启权限：
 
 `mysql> grant all on *.* to 'root'@'%' identified by 'root'；`
+
+**注：除修改密码和查询结果的操作外，其他操作必须在停止数据库的情况下进行。
+假如忘记了数据库密码或者不知道数据库密码，可以进入/etc/my.cnf文件[mysqld] 下加入了skip-grant-tables，输入密码的时候就可以不输入直接进入。修改密码以后再取消那段语句。也可以直接使用参数启动mysql的安全模式`/usr/local/mysql/bin/mysqld_safe --skip-grant-tables`，执行`update mysql.user set authentication_string=password('newpassword') where user='root' and Host = 'localhost';`和`flush privileges;`以后再以正常模式启动mysql**
 
 # 使用原则
 摘录自互联网《mysql 36军规》：
