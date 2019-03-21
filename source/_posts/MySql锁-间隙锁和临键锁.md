@@ -1,6 +1,6 @@
 ---
 title: MySql锁-间隙锁和临键锁
-categories: 编程技术
+categories: 学习笔记
 date: 2019-03-20 08:54:55
 tags:
 - MySql
@@ -272,9 +272,77 @@ insert into values (6,6,6);
 ```
 分析：
 
-由于是order by c desc，所以遍历时第一个是20:
+由于是order by c desc，所以遍历时第一个是c=20以及最右边的行:
 
-1. next-key (20,25],(15,20]；
-2. c=15,c=20加锁；
+1. next-key(15,20](20,25]，其中(20,25]会退化为(20,25)gap lock；
+2. c=15,c=20，c=25加锁；
 3. 由于不是唯一索引，所以不满足优化1；
-4. 由于索引c上20右边第一个值为25，不满足c=20，退化为间隙锁(20,25);继续搜索，15的下一个值为10，所以(5,10]上也会有next-key lock。
+4. 在索引c上向左遍历，知道c=10才会停止，所以next-key lock还包括(5,10]。
+
+## 案例十：多索引等值查询
+首先创建表：
+```sql
+CREATE TABLE z (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  b  INT,
+  KEY b(b)
+)
+  ENGINE = InnoDB
+  DEFAULT CHARSET = utf8;
+
+INSERT INTO z (id, b)
+VALUES (1, 2),
+  (3, 4),
+  (5, 6),
+  (7, 8),
+  (9, 10);
+```
+
+```sql
+----session a
+BEGIN;
+SELECT *
+FROM z
+WHERE b = 6 FOR UPDATE;
+
+--session b
+INSERT INTO z VALUES (2, 4);
+INSERT INTO z VALUES (2, 8);
+INSERT INTO z VALUES (4, 4);
+INSERT INTO z VALUES (4, 8);
+INSERT INTO z VALUES (8, 4);
+INSERT INTO z VALUES (8, 8);
+INSERT INTO z VALUES (0, 4);
+INSERT INTO z VALUES (-1, 4);
+```
+分析：
+
+1. next-key lock(4,6];
+2. b=6这一行加锁；
+3. 不满足；
+4. 满足，加gap lock(6,8);
+5. 
+需要牢记的是：这个锁是加在b索引上的，而索引都是有序的，所以我们很轻易得到下图：
+
+![ex8_gap lock.png](MySql锁-间隙锁和临键锁/ex8_lock.png)
+
+所以session b的结果是：
+
+```sql
+INSERT INTO z VALUES (2, 4);--success
+INSERT INTO z VALUES (2, 8);--blocked
+INSERT INTO z VALUES (4, 4);--blocked
+INSERT INTO z VALUES (4, 8);--blocked
+INSERT INTO z VALUES (8, 4);--blocked
+INSERT INTO z VALUES (8, 8);--success
+INSERT INTO z VALUES (0, 4);--自增主键如果为0会自动替换为表里最大id的下一位,所以这里实际是(10,4)，blocked
+INSERT INTO z VALUES (-1, 4);--success
+```
+# 参考
+架构师之路：
+
+[https://mp.weixin.qq.com/s/y_f2qrZvZe_F4_HPnwVjOw](https://mp.weixin.qq.com/s/y_f2qrZvZe_F4_HPnwVjOw)
+
+案例十详解参见其他博客：
+
+[https://helloworlde.github.io/blog/blog/MySQL/MySQL-%E4%B8%AD%E5%85%B3%E4%BA%8Egap-lock-next-key-lock-%E7%9A%84%E4%B8%80%E4%B8%AA%E9%97%AE%E9%A2%98.html](https://helloworlde.github.io/blog/blog/MySQL/MySQL-%E4%B8%AD%E5%85%B3%E4%BA%8Egap-lock-next-key-lock-%E7%9A%84%E4%B8%80%E4%B8%AA%E9%97%AE%E9%A2%98.html)
