@@ -4,7 +4,7 @@ categories: 编程技术
 date: 2019-01-30 16:30:59
 tags:
 - Java
-- 杂记
+- 随记
 ---
 # 描述
 java 的awt工具包里是有图像类(Image)，所以可以读取图像并利用Graphics2D进行操作。但是ImageIO.read()方法读取图片时可能存在不正确处理图片ICC（ICC为JPEG图片格式中的一种头部信息）信息的问题，导致渲染图片前景色时蒙上一层红色，因此需要用JDK提供的Toolkit.getDefaultToolkit()进行操作。
