@@ -11,25 +11,29 @@ tags:
 keywords: [Java,Maven,Dubbo,SOA]
 description: 记录搭建dubbo的一个分布式应用
 ---
+
 # 简述
+
 dubbo 是目前国内最广泛的rpc框架，官网见 [http://dubbo.apache.org/zh-cn/index.html](http://dubbo.apache.org/zh-cn/index.html)，建议直接对着官网开发文档配置较为可靠。
 dubbo常用于soa架构，soa架构和微服务架构均是分布式系统的两种实践，从某种程度而言，soa架构是微服务架构的超集，或者说微服务是soa的一个变种。
 <!--more-->
 
-|SOA|微服务|
-|---|---|
-|应用程序服务的可重用性的最大化|专注于解耦|
-|系统性的改变需要修改整体|系统性的改变是创建一个新的服务|
-|DevOps和持续交付正在变得流行，但还不是主流|强烈关注DevOps和持续交付
-|专注于业务功能重用|更重视“上下文边界，服务粒度”的概念
-|支持多种消息协议|使用轻量级协议，例如HTTP，REST或Thrift API
-|对部署到它的所有服务使用通用平台|应用程序服务器不是真的被使用，通常使用云平台
-|容器（如Docker）的使用不太受欢迎|容器在微服务方面效果很好
-|SOA服务共享数据存储|每个微服务可以有一个独立的数据存储
-|共同的治理和标准|轻松的治理，更加关注团队协作和选择自由
+| SOA                      | 微服务                            |
+| ------------------------ | ------------------------------ |
+| 应用程序服务的可重用性的最大化          | 专注于解耦                          |
+| 系统性的改变需要修改整体             | 系统性的改变是创建一个新的服务                |
+| DevOps和持续交付正在变得流行，但还不是主流 | 强烈关注DevOps和持续交付                |
+| 专注于业务功能重用                | 更重视“上下文边界，服务粒度”的概念             |
+| 支持多种消息协议                 | 使用轻量级协议，例如HTTP，REST或Thrift API |
+| 对部署到它的所有服务使用通用平台         | 应用程序服务器不是真的被使用，通常使用云平台         |
+| 容器（如Docker）的使用不太受欢迎      | 容器在微服务方面效果很好                   |
+| SOA服务共享数据存储              | 每个微服务可以有一个独立的数据存储              |
+| 共同的治理和标准                 | 轻松的治理，更加关注团队协作和选择自由            |
+
 图表资料来源于网上：[资深架构师](https://blog.csdn.net/chszs/article/details/78515231)
 
 # dubbo+spring xml方式
+
 ## pom文件
 
 ```xml
@@ -55,7 +59,9 @@ dubbo常用于soa架构，soa架构和微服务架构均是分布式系统的两
         <version>0.1</version>
     </dependency>
 ```
+
 ## 服务发布方
+
 dubbo-provider.xml:
 
 ```xml
@@ -69,7 +75,9 @@ dubbo-provider.xml:
 <!--暴露的接口完整限定名，也可以用@Service注解配合dubbo:annotation的标签暴露服务接口-->
 <dubbo:service interface="com.tubitu.service.user.UserInfoService" ref="userInfoServiceImpl"/>
 ```
+
 ## 服务消费方
+
 dubbo-consumer.xml:
 
 ```xml
@@ -91,6 +99,7 @@ dubbo-consumer.xml:
 <!--<dubbo:annotation package=""/>-->
 <dubbo:reference id="userInfoServiceImpl" interface="com.tubitu.service.user.UserInfoService"/>
 ```
+
 ## 调用
 
 service的调用可以直接使用spring的@Autowired注解，就和spring扫描的服务一样，version和timeout，由于这个版本的dubbo不支持全局超时配置，因此需要在调用方指定超时时间。
@@ -101,18 +110,21 @@ service的调用可以直接使用spring的@Autowired注解，就和spring扫描
 linux下需要进入zookeeper里的bin目录下，执行zkServer start命令启动，执行zkServer stop停止zk。
 
 # dubbo+spring boot方式
+
 ## 搭建父项目
+
 新建项目，类型选择maven，然后勾选Create from archetype，选择maven-archetype-quickstart，生成一个普通的maven项目，填写maven仓库坐标即可一路点击完成，如果有src目录，可以直接删除，然后修改pom文件的packaging标签的值为pom，表示父项目只提供pom依赖。
- 
+
 ## 搭建子模块
+
 对于普通子模块：在父项目的基础上new -> module，然后操作与第一步大致一致，需要注意的是groupId要和父项目的保持一致，artifactId可以自定义。
- 
+
 对于spring boot子木块：在父项目的基础上new -> module，选择spring initializer，在new module窗口上，填写group与父项目的groupId保持一致，artifact为项目名，并填写好name和package，packaging根据需要可以填写jar、war等包类型，本文推荐使用jar包，注意右上角小的下拉框，本文所使用的配置无法保证在spring boot 1.5.X以外的版本使用。
- 
+
 ## 父子关联
+
 重复第二步，创建自己所需各个模块以后，其结构基本如下：
 ![](maven-dubbo-zk构建soa架构/1538230647478_15.png)
-
 
 将父pom文件里增加modules标签，并与子module的artifactId一一关联上：
 
@@ -170,7 +182,6 @@ linux下需要进入zookeeper里的bin目录下，执行zkServer start命令启�
 
 对于tubitu\_common、tubitu\_util和tubitu\_service这几个项目，第一个和第二个分别为实体类以及工具类所在项目，而tubitu_service是作为dubbo提供父和调用方的一个公共接口。这三个项目均可以打成单独的jar包作为其他项目依赖而存在，所以可以指定maven编译插件和源码版本。
 
-
 ```xml
 <build>
         <plugins>
@@ -204,6 +215,7 @@ linux下需要进入zookeeper里的bin目录下，执行zkServer start命令启�
 如此最后才能打出完整的包。
 
 ## 依赖统一管理
+
 在父pom文件里定义公共jar包或框架的统一版本，只定义而不引入，在子模块中直接引入。
 例如：
 在父pom文件里配置了统一属性:
@@ -251,13 +263,14 @@ linux下需要进入zookeeper里的bin目录下，执行zkServer start命令启�
                 <type>pom</type>
                 <scope>import</scope>
        </dependency>
-		<dependency>
+        <dependency>
                 <groupId>org.mybatis.spring.boot</groupId>
                 <artifactId>mybatis-spring-boot-starter</artifactId>
                 <version>${mybatis.starter.version}</version>
         </dependency>
 <dependencyManagement>
 ```
+
 则在子模块中，可以直接引入，无需定义依赖：
 
 ```xml
@@ -277,6 +290,7 @@ linux下需要进入zookeeper里的bin目录下，执行zkServer start命令启�
             <version>0.1.1</version>
         </dependency>
 ```
+
 注意的是：只有0.1.x的版本是支持spring boot 1.5.x，0.2.x用于spring boot 2.x。
 
 ## dubbo生产者配置
@@ -297,10 +311,10 @@ dubbo.registry.address = zookeeper://127.0.0.1:2181
 dubbo.scan.basePackages  = com.tubitu.service
 dubbo.provider.version=1.0.0
 ```
+
 业务类代码编写方式与使用spring一致，区别在于@Service注解是由Dubbo提供。
 
 启动类：
-
 
 ```java
 @MapperScan("com.tubitu.mapper")
@@ -308,9 +322,9 @@ dubbo.provider.version=1.0.0
 @EnableTransactionManagement
 @EnableAspectJAutoProxy
 public class ProviderUserApplication {
-	public static void main(String[] args) {
-		new SpringApplicationBuilder(ProviderUserApplication.class).web(false).run(args);
-	}
+    public static void main(String[] args) {
+        new SpringApplicationBuilder(ProviderUserApplication.class).web(false).run(args);
+    }
 }
 ```
 
@@ -340,7 +354,6 @@ dubbo.registry.check=false
 `spring.aop.proxy-target-class=true`
 并在启动类上加上如下两个注解：
 
-
 `@EnableTransactionManagement`
 `@EnableAspectJAutoProxy`
 
@@ -352,6 +365,7 @@ dubbo.registry.check=false
 
 使用dubbo的@Reference注解，可以对某个Reference
 配置版本号和超时时间，来达到灰度发布的效果。
+
 # 一点补充
 
 ## 启动脚本
@@ -409,7 +423,6 @@ source start.sh
                     </exclusion>
                 </exclusions>
             </dependency>
-
 ```
 
 哪个jar包有多个，就将jar包的groupID和artifactID填入exclusion标签即可。
