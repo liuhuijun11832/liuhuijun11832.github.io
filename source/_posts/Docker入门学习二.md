@@ -8,7 +8,9 @@ tags:
 keywords: [CI,CD,Docker]
 description: 构建和编排自己的Docker应用
 ---
+
 # Dockerfile
+
 通过dockerfile实现秒级镜像迁移。
 
 定义：
@@ -26,8 +28,8 @@ description: 构建和编排自己的Docker应用
 * 自动化流程；
 * 提交修改时只需要提交dockerfile的修改。
 
-
 <!--more-->
+
 ## 结构
 
 * 基础指令：定义新镜像的基础和性质；
@@ -36,57 +38,66 @@ description: 构建和编排自己的Docker应用
 * 执行指令：为容器指定在启动时需要执行的脚本或指令；
 * 配置命令：配置网络、用户等。
 
-
 ## 常见指令
+
 ### FROM
+
 一般情况下，我们不会从0开始搭建一个基础镜像，而是会选择一个已经存在的镜像为基础。
 
-		FROM<image>[AS<name>]
-		FROM<image>[:<tag>][AS<name>]
-		FROM<image>[@<digest>][AS<name>]
+        FROM<image>[AS<name>]
+        FROM<image>[:<tag>][AS<name>]
+        FROM<image>[@<digest>][AS<name>]
+
 也可以用该指令合并两个镜像的功能。
 
 ### RUN
+
 用于向控台发送命令。
 
-	  RUN<command>
-		RUN["executable","param1","param2"]
+      RUN<command>
+        RUN["executable","param1","param2"]
+
 支持反斜杠换行。
 
 ### ENTRYPOINT/CMD
 
 用于启动容器内的主程序。
 
-	ENTRYPOINT["executable","param1","param2"]
-	ENTRYPOINTcommandparam1param2
-	CMD["executable","param1","param2"]
-	CMD["param1","param2"]
-	CMDdommandparam1param2
+    ENTRYPOINT["executable","param1","param2"]
+    ENTRYPOINTcommandparam1param2
+    CMD["executable","param1","param2"]
+    CMD["param1","param2"]
+    CMDdommandparam1param2
 
 ### EXPOSE
+
 为容器暴露指定端口。
 
-	EXPOSE<port>[<port>/<protocol>...]
+    EXPOSE<port>[<port>/<protocol>...]
 
 两个命令大体相近，都可以为空。
 当两个命令同时给出时，CMD的内容会作为ENTRYPOINT定义的命令的参数。
 
 ### VOLUME
+
 定义数据卷目录
 
-	VOLUME["/data"]
-	
+    VOLUME["/data"]
+
 ### COPY/ADD
+
 从宿主机的文件系统里拷贝内容到镜像里的文件系统中。
 
-	COPY[--chown=<user>:<group>]<src>...<dest>
-	ADD[--chown=<user>:<group>]<src>...<dest>
+    COPY[--chown=<user>:<group>]<src>...<dest>
+    ADD[--chown=<user>:<group>]<src>...<dest>
+
 src和dest外可以加""。
 两者的区别在于：**ADD能够使用URL作为src，并且识别到源文件为压缩包时自动解压。**
 
 `docker build <path>`path可以为本地路径或者URL路径，但并不是dockerfile文件路径，而是构建环境目录，-f可以指定dockerfile文件位置，未指定的话默认就在环境目录下去找，-t可以指定新生成镜像的名称。
 
 ### ARG
+
 定义一个变量，变量只可以在build时传进来，只在当前镜像内有效。
 例如dockerfile如下：
 
@@ -99,24 +110,28 @@ ARG TOMCAT_VERSION
 RUN wget -0 tomcat.tar.gz "http//...$TOMCAT_MAJOR:$TOMCAT_VERSION..."
 ...﻿​
 ```
+
 在build时，可以这样传入参数：`docker build --build-arg TOMCAT_MAJOR=8 --build-arg TOMCAT_VERSION=8.0.53 ./`
 
 ### ENV
+
 定义一个环境变量，环境变量在所有基于此镜像的镜像内都生效，并且可以指定值。
 
-	FROM debian:stretch-slim
-	...
-	ARG TOMCAT_MAJOR 8
-	ARG TOMCAT_VERSION 8.0.53
-	...
-	RUN wget -0 tomcat.tar.gz "http//...$TOMCAT_MAJOR:$TOMCAT_VERSION..."
-	...
+    FROM debian:stretch-slim
+    ...
+    ARG TOMCAT_MAJOR 8
+    ARG TOMCAT_VERSION 8.0.53
+    ...
+    RUN wget -0 tomcat.tar.gz "http//...$TOMCAT_MAJOR:$TOMCAT_VERSION..."
+    ...
+
 取值与ARG一致，使用美元符号取值符，当ARG与ENV的名字重复时，ENV会覆盖ARG，同时ENV的值也可以通过运行时选项-e或者-env传入：
 `docker run -e <key>=<value> <image>`。
 
 ## 指令实战
 
 ### 实战
+
 构建一个Spring Boot（我的博客）项目，dockerfile如下：
 
 ```docker
@@ -125,25 +140,26 @@ VOLUME /tmp
 COPY MyBlog-0.0.1-SNAPSHOT.jar app.jar
 ENTRYPOINT ["java","-jar","-Dlogging.file=/spring.log","/app.jar"]
 ```
+
 选择基础镜像含有oraclejdk8，如果不清楚，可以使用docker search oraclejdk8，复制其中一个的name作为基础镜像。同时，为容器挂载一个目录，主机的/var/lib/docker下会有一个目录挂载到/tmp目录下，根据Srping Boot官方说明：
- 	
+
 > We added a VOLUME pointing to "/tmp" because that is where a Spring Boot application creates working directories for Tomcat by default. The effect is to create a temporary file on your host under "/var/lib/docker" and link it to the container under "/tmp". This step is optional for the simple app that we wrote here, but can be necessary for other Spring Boot applications if they need to actually write in the filesystem.
 
 Spring Boot项目启动时是默认以/tmp目录作为tomcat的工作目录的，所以最好挂载一个宿主机到容器中，虽然对于这个简单项目这一步是可选的，但是对于其他Spring Boot项目可能是必须的。
 使用COPY或者ADD命令拷贝程序到镜像文件系统中，然后最后一步是主要指令，需要记住：第一个是命令，每多一条参数，请多一个""（双引号），不然会报Unrecognized option: -jar -Dlogging.file=/spring.log（无法识别选项）的错。最后一步：docker build ./ -t myblog开始构建镜像，记住镜像名只能小写。
+
 ### 技巧
 
-	#对于能够合并的多条指令，推荐合并。以下两种效果时一样的，但是推荐第一种
-	RUN apt-get update;\
-	    apt-get istall -y --no-install-recommends $fetchDeps;\
-	    rm -rf /var/lib/apt/lists/*;
-	
-	RUN apt-get update;
-	RUN apt-get install -y --no-install-recommends $fetchDeps;
-	RUN rm -rf /var/lic/apt/lists/*
+    #对于能够合并的多条指令，推荐合并。以下两种效果时一样的，但是推荐第一种
+    RUN apt-get update;\
+        apt-get istall -y --no-install-recommends $fetchDeps;\
+        rm -rf /var/lib/apt/lists/*;
+    
+    RUN apt-get update;
+    RUN apt-get install -y --no-install-recommends $fetchDeps;
+    RUN rm -rf /var/lic/apt/lists/*
 
 原因在于：每一条能够对文件系统的指令执行之前，Docker都会基于上条命令的结果启动一个容器，在容器中运行这条指令的内容，之后再形成一层镜像，如此反复形成最终镜像。因此，合并以后就能提升构建效率。
-
 
 对于ENTRYPOINT和CMD，前者优先级高于后者，因为它常用于对容器初始化，而CMD才是启动主程序的指令，在前一篇基础知识中提过运行时重写指令，其实重写的就是CMD指令，当两者同时存在时，CMD指令会作为ENTRYPOINT指令的参数存在。
 
@@ -171,7 +187,6 @@ CMD /bin/exec args
 # Docker Compose
 
 容器管理工具，也被称为容器编排工具。
-
 
 一套项目，往往是由数据库，缓存，应用组成，而在分布式架构下，每一个实例可能都有多个，所以就需要容器编排工具进行管理。
 
@@ -206,15 +221,18 @@ services:
 volumes:
   logvolume: {}
 ```
+
 `docker-compose up`：运行，-d后台运行，-f修改指定配置文件，-p定义项目名称。
 `docker-compose down`：停止所有容器，并将他们删除。
 "随用随删，随用随启"
 
 ### 容器编排命令
 
-	docker-compose logs <cointainer>：查看集群中某个容器内主进程日志
-	docker-compose create/start/stop/ <cointainer> ：创建/启动/停止集群内某个容器
+    docker-compose logs <cointainer>：查看集群中某个容器内主进程日志
+    docker-compose create/start/stop/ <cointainer> ：创建/启动/停止集群内某个容器
+
 ### 常用配置
+
 ```yaml
 version: "3"
 services:
@@ -241,7 +259,7 @@ services:
             - "6379":"6379"
         ##指定redis启动时的指令，此处是为了定义启启动的配置文件
         command: ["redis-server","/etc/redis.conf"]
-    
+
     database:
         image: mysql:5.7
         networks:
@@ -255,7 +273,7 @@ services:
         ##类似于-p指定端口映射
         ports:
             - "3306":"3306"
-    
+
     webapp:
         ##没有指定镜像，说明镜像来源于构建
         build: ./webapp
@@ -267,7 +285,7 @@ services:
         depends_on:
             - redis
             - database
-    
+
     nginx:
         image: nginx:1.12
         networks:
@@ -290,7 +308,9 @@ volumes:
     ##mysql-data:
         # exernal: true
 ```
+
 ### Docker Compose 实战
+
 现有如下几个服务：
 
 mysql，redis，tomcat，Java war包
@@ -411,7 +431,9 @@ services:
 ```
 
 # 服务化开发
+
 ## 搭建本地环境
+
 使用docker compose定义本地的一组环境，如spring项目+mysql数据库。
 与同事的其他服务模块产生调用（可以借助网络别名更轻松地调用）。
 借助Overlay网络实现不同主机互联。
@@ -420,10 +442,11 @@ services:
 
 Docker内置的集群工具，帮助管理部署不同主机上的Docker daemon集群。
 
-	docker swarm init：初始化集群，默认当前节点为管理节点
-	docker swarm join：加入集群，docker swarm join-token表示获得管理节点的加入命令，执行获得的那条管理节点的加入命令以后就可以称为管理节点
-	docker network create：--driver overlay表示启动类型为跨网类型，--attachable mesh选项方便不同主机上的docker容器能够正常使用到它
-	docker network ls：查看其下网络列表
+    docker swarm init：初始化集群，默认当前节点为管理节点
+    docker swarm join：加入集群，docker swarm join-token表示获得管理节点的加入命令，执行获得的那条管理节点的加入命令以后就可以称为管理节点
+    docker network create：--driver overlay表示启动类型为跨网类型，--attachable mesh选项方便不同主机上的docker容器能够正常使用到它
+    docker network ls：查看其下网络列表
+
 然后在docker compose的yml文件中配置networks配置块：
 
 ```yaml
@@ -433,6 +456,7 @@ networks：
 ```
 
 # 服务发现
+
 使用docker compose模拟zookeeper集群注册中心，用三个docker compose 服务定义这三个节点：
 
 ```yaml
@@ -477,8 +501,8 @@ ZOO\_SERVICES:定义所有zk和它们的连接方式。
 
 例如：
 
-	server.1=0.0.0.0:2888:3888 server.2=zk2:2888:3888 server.3=zk3:2888:3888
-	
+    server.1=0.0.0.0:2888:3888 server.2=zk2:2888:3888 server.3=zk3:2888:3888
+
 我们可以在 ZOO_SERVERS 中定义所有处于 Zookeeper 集群中的程序，通过空格来间隔它们。而每个服务的的定义形式为 server.[id]=[host]:[port]:[port]，所以就有了上面例子中我们看到的样子。
 
 在这个例子里，我们描述了三个 Zookeeper 程序的连接地址。
@@ -491,12 +515,9 @@ restart: always 这个配置，这个配置主要是用来控制容器的重启�
 
 这里的 always 指的是不论任何情况，容器出现问题后都会自动重启，也包括 Docker 服务本身在启动后容器也会自动启动。
 
-|配置值	|说明
-|---|---|
-|no	|不设重启机制
-|always|总是重启
-|on-failure|在异常退出时重启
-|unless-stopped|除非由停止命令结束，其他情况都重启
-
-
-
+| 配置值            | 说明                |
+| -------------- | ----------------- |
+| no             | 不设重启机制            |
+| always         | 总是重启              |
+| on-failure     | 在异常退出时重启          |
+| unless-stopped | 除非由停止命令结束，其他情况都重启 |
