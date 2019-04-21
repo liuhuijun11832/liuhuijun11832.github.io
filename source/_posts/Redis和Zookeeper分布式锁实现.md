@@ -40,11 +40,11 @@ IDE：IDEA 2019.1.1
 引入pom:
 
 ```xml
-        <dependency>
-            <groupId>redis.clients</groupId>
-            <artifactId>jedis</artifactId>
-            <version>2.9.0</version>
-        </dependency>
+<dependency>
+	<groupId>redis.clients</groupId>
+	<artifactId>jedis</artifactId>
+	<version>2.9.0</version>
+</dependency>
 ```
 
 要注意的是，尽量保证加锁和释放锁时的原子操作，以及value的唯一性和value与会话的匹配：
@@ -115,11 +115,11 @@ Redisson提供了几种集群模式：单机SingleServer，ClusterServer，Maste
 引入pom:
 
 ```xml
-        <dependency>
-            <groupId>org.redisson</groupId>
-            <artifactId>redisson</artifactId>
-            <version>3.10.6</version>
-        </dependency>
+<dependency>
+    <groupId>org.redisson</groupId>
+    <artifactId>redisson</artifactId>
+    <version>3.10.6</version>
+</dependency>
 ```
 
 代码：
@@ -158,18 +158,17 @@ Created /LOCKS
 引入zk原生jar包，还有辅助的lombok包：
 
 ```xml
-        <dependency>
-            <groupId>org.apache.zookeeper</groupId>
-            <artifactId>zookeeper</artifactId>
-            <version>3.4.10</version>
-        </dependency>
-        <dependency>
-            <groupId>org.projectlombok</groupId>
-            <artifactId>lombok</artifactId>
-            <version>1.8.16</version>
-
-            <optional>true</optional>
-        </dependency>
+<dependency>
+    <groupId>org.apache.zookeeper</groupId>
+    <artifactId>zookeeper</artifactId>
+    <version>3.4.10</version>
+</dependency>
+<dependency>
+    <groupId>org.projectlombok</groupId>
+    <artifactId>lombok</artifactId>
+    <version>1.8.16</version>
+    <optional>true</optional>
+</dependency>
 ```
 
 zookeeper分布式锁的原理是：**客户端在父节点下创建临时子节点，然后获取所有子节点，判断当前创建的临时节点是否是最小节点，如果是最小节点即表示获取锁，如果不是最小节点则监听当前节点的前一个节点，如果监听到前一节点删除则当前客户端获取到锁***。使用临时节点可以避免死锁，这里使用countDownLatch限制当前只有一个客户端连接zk：
