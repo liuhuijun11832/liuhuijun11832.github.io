@@ -153,8 +153,6 @@ Created /LOCKS
 
 ## Zookeeper
 
-首先
-
 引入zk原生jar包，还有辅助的lombok包：
 
 ```xml
