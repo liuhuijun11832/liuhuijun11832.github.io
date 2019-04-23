@@ -11,6 +11,8 @@ description: Java使用fastjson和gson将实体类转化为json字符串的一�
 
 Google的Gson和Alibaba的FastJson都是常用的用于将实体类或者容器转化为json字符串的工具包，但是这两个工具包都有一个共同的小问题，默认情况下，对于bean里为null的字段，转为json以后会直接丢失不显示。但是有的时候为了方便前端，有时候想当String类型的字段为null时，返回给前端一个空串。
 
+<!--more-->
+
 ## Gson
 
 首先使用gson的方式来实现，我们需要写一个adapter继承gson的typeadapter来实现我们的转换逻辑。
