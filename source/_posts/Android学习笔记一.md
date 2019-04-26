@@ -179,8 +179,7 @@ protected void onCreate(Bundle savedInstanceState) {
     button.setOnClickListener(new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-       	//隐式组件调用
-            Intent intent = new Intent("activityIntent");
+            Intent intent = new Intent(FirstActivity.this, SecondActivity.class);
             //如果添加了其他category，那么在manifest.xml文件中的intent-filter也要加上该策略
             //intent.addCategory("MY_CATEGORY");
             startActivity(intent);
