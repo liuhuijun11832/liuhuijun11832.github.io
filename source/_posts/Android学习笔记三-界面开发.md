@@ -60,38 +60,43 @@ app/build.gradle如下：
 
 ```groovy
 apply plugin: 'com.android.application'
- android {
- compileSdkVersion 27
- defaultConfig {
- applicationId "com.joyinclude"
- minSdkVersion 15
- targetSdkVersion 27
- versionCode 1
- versionName "1.0"
- testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
- javaCompileOptions { annotationProcessorOptions { includeCompileClasspath = true } }
- }
- buildTypes {
- release {
- minifyEnabled false
- proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
- }
- }
- compileOptions {
- sourceCompatibility JavaVersion.VERSION_1_8
- targetCompatibility JavaVersion.VERSION_1_8
- }
- }
- dependencies {
- implementation fileTree(include: ['*.jar'], dir: 'libs')
- implementation 'com.android.support:appcompat-v7:27.1.1'
- implementation 'com.android.support:recyclerview-v7:27.1.1'
- implementation 'com.android.support.constraint:constraint-layout:1.1.3'
- testImplementation 'junit:junit:4.12'
- androidTestImplementation 'com.android.support.test:runner:1.0.2'
- androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
- implementation 'org.projectlombok:lombok:1.18.6'
- }
+
+android {
+    compileSdkVersion 27
+
+    defaultConfig {
+        applicationId "com.joy.practice"
+        minSdkVersion 15
+        targetSdkVersion 27
+
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+        javaCompileOptions { annotationProcessorOptions { includeCompileClasspath = true } }
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    iimplementation 'com.android.support:appcompat-v7:27.1.1'
+    implementation 'com.android.support:recyclerview-v7:27.1.1'
+
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+    implementation 'org.projectlombok:lombok:1.18.6'
+}
 ```
 
 模仿ios做一个具有返回和编辑按钮的标题栏，首先新建一个标题栏的布局文件，并在res下新建一个drawable-xhdpi目录，然后将需要的title_bg.png,back_bg.png,edit_bg.png复制进去，布局如下：
@@ -563,7 +568,7 @@ RecyclerView还可以实现横向滚动的列表，此时每一个item里面的�
 使用center_vertical将图片和文字都水平居中，并且使用layout_marginTop让文字和图片之间保持10dp的间距。然后修改CyclerViewActivity里的代码，调整LinearLayoutManager里的orientation属性为水平：
 
 ```java
-        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
+        LinearLayoutManager linearLayoutManager = new LinearLayoutManager(this);
         //设置横向滚动
         linearLayoutManager.setOrientation(LinearLayoutManager.HORIZONTAL);
         recyclerView.setLayoutManager(linearLayoutManager);
@@ -574,8 +579,6 @@ RecyclerView还可以实现横向滚动的列表，此时每一个item里面的�
 ![Android学习笔记三-界面开发\20190426181814](Android学习笔记三-界面开发\20190426181814.jpg)
 
 还可以实现瀑布滚动效果，首先调整list_item.xml：
-
-
 
 ```xml
 <?xml version="1.0" encoding="utf-8"?>
@@ -611,7 +614,7 @@ RecyclerView还可以实现横向滚动的列表，此时每一个item里面的�
 修改活动类里的代码：
 
 ```java
-        RecyclerView recyclerView = findViewById(R.id.cycler_view);
+        RecyclerView recyclerView = findViewById(R.id.cycler_view);
         StaggeredGridLayoutManager staggeredGridLayoutManager = new StaggeredGridLayoutManager(3, StaggeredGridLayoutManager.VERTICAL);
         recyclerView.setLayoutManager(staggeredGridLayoutManager);
 ```
@@ -619,7 +622,7 @@ RecyclerView还可以实现横向滚动的列表，此时每一个item里面的�
 初始化数据时生成随机长度水果名称:
 
 ```java
-    private void initFruitList(){
+    private void initFruitList(){
         for (int i = 0; i < 2; i++) {
             Fruit apple = new Fruit(getRandomLengthName("Apple"),R.drawable.apple_pic);
             fruitList.add(apple);
@@ -658,5 +661,263 @@ RecyclerView还可以实现横向滚动的列表，此时每一个item里面的�
 效果如下：
 
 ![Android学习笔记三-界面开发\20190426182816](Android学习笔记三-界面开发\20190426182816.jpg)
+
+# 界面最佳实践
+
+环境：
+Android Studio 3.4
+Windows 10
+调试机：一加 6 Android 9
+创建一个项目，其中app/build.gradle如下：
+
+```groovy
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.joy.practice"
+        minSdkVersion 15
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support:recyclerview-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
+```
+
+在android studio里，可以对某个png右击，然后点击creat 9-patch file，即可以对图片进行定制，例如聊天气泡是可以随着文字的增多而进行拉伸的，如图：
+
+![Android学习笔记三-界面开发\Snipaste_2019-04-27_01-44-01](Android学习笔记三-界面开发\Snipaste_2019-04-27_01-44-01.png)
+
+其中四周的黑色边即代表需要拉伸的部分，然后将该图片放到res/drawable-xhdpi目录里。
+
+创建聊天界面布局：
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#d8e0e8">
+
+    <com.joy.practice.TitleLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+    </com.joy.practice.TitleLayout>
+
+    <android.support.v7.widget.RecyclerView
+        android:id="@+id/msg_view"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"></android.support.v7.widget.RecyclerView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <EditText
+            android:id="@+id/input_text"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:hint="type something here"
+            android:maxLines="2"
+            />
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Send"
+            android:textAllCaps="false"
+            android:id="@+id/send"
+            />
+    </LinearLayout>
+
+</LinearLayout>
+```
+
+每一条聊天消息的布局：
+
+```xml
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp">
+
+    <LinearLayout
+        android:id="@+id/left_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left"
+        android:background="@drawable/message_left">
+
+        <TextView
+            android:id="@+id/left_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_margin="10dp"
+            android:textColor="#fff" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/right_layout"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right"
+        android:background="@drawable/message_right">
+
+        <TextView
+            android:id="@+id/right_msg"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="10dp"
+            />
+    </LinearLayout>
+</LinearLayout>
+```
+
+其中title-layout就是上节中有回退和编辑按钮的标题栏，新建一个基类活动用于隐藏系统自带标题栏，以后其他类都可以继承这个基类。
+
+```java
+public class BaseActivity extends AppCompatActivity {
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        ActionBar actionBar = getSupportActionBar();
+        if(actionBar != null) actionBar.hide();
+    }
+}
+```
+
+消息实体类：
+
+```java
+public class Msg {
+
+    public static final int TYPE_RECEIVED = 0;
+
+    public static final int TYPE_SENT = 1;
+
+    private String content;
+
+    private int type;
+
+    public Msg(String content, int type) {
+        this.content = content;
+        this.type = type;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
+}
+```
+
+创建工具类判断是否是空字符串：
+
+```java
+public class StringUtils {
+
+    public static boolean isEmpty(String str){
+        return str == null || str.length() == 0;
+    }
+
+}
+```
+
+创建一个主活动：
+
+```java
+public class MainActivity extends BaseActivity {
+
+    private List<Msg> msgList = new ArrayList<>();
+
+    private EditText inputText;
+
+    private Button send;
+
+    private RecyclerView msgRecyclerView;
+
+    private MsgAdapter msgAdapter;
+
+    @Override
+
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        initMsg();
+        inputText = findViewById(R.id.input_text);
+        send = findViewById(R.id.send);
+        msgRecyclerView = findViewById(R.id.msg_view);
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+        msgRecyclerView.setLayoutManager(layoutManager);
+        msgAdapter = new MsgAdapter(msgList);
+        msgRecyclerView.setAdapter(msgAdapter);
+        send.setOnClickListener(view -> {
+            String content = inputText.getText().toString();
+            if (StringUtils.isEmpty(content)) {
+                Toast.makeText(msgRecyclerView.getContext(), "不可发送空白消息", Toast.LENGTH_SHORT).show();
+            } else {
+                Msg msg = new Msg(content, Msg.TYPE_SENT);
+                msgList.add(msg);
+                //发送消息插入通知
+
+                msgAdapter.notifyItemInserted(msgList.size() - 1);
+                //将新元素插入到队尾
+
+                msgRecyclerView.scrollToPosition(msgList.size() - 1);
+                inputText.setText("");
+            }
+        });
+    }
+
+    private void initMsg() {
+        Msg msg1 = new Msg("我爱萌儿", Msg.TYPE_SENT);
+        msgList.add(msg1);
+        Msg msg2 = new Msg("我也爱你", Msg.TYPE_RECEIVED);
+        msgList.add(msg2);
+        Msg msg3 = new Msg("我想娶你", Msg.TYPE_SENT);
+        msgList.add(msg3);
+    }
+}
+```
 
 
