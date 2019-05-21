@@ -83,6 +83,10 @@ make install
 
 访问rabbitmq所在服务器的15672端口，即可访问控制台。
 
+当然，docker安装更为简单，无需上面那么多步骤，直接下载rabbitmq的镜像，然后一步搞定：
+
+`docker run -d  --name rabbitmq -p 25672:25672 -p 5672:5672 -p 15672:15672 rabbitmq:latest`
+
 # 代码整合
 
 这里采用父子模块的方案来构建整体骨架。点击New，新建一个Project，在弹出来的框中选择Maven选项，并勾选Create from archetype，选择maven-archetype-quickstart，新建项目后，删除src等源代码目录。在该项目里再New一个Module，同样是Maven项目，但是archetype选择maven-archetype-webapp。
