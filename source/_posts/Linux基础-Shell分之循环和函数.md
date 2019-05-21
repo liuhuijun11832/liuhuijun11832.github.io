@@ -16,12 +16,12 @@ description: Shell循环和函数语法
 单分支：
 
 ```bash
-#第一种
+//第一种
 if <条件表达式>
     then
         指令
 fi
-#第二种
+//第二种
 if <条件表达式> then
     指令
 fi﻿​
