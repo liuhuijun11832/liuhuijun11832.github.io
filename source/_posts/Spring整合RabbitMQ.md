@@ -19,25 +19,17 @@ RabbitMQ使用Erlang语言编写，实现AMQP，同时支持MQTT，STOMP等多�
 
 服务器环境：
 
-
-
-    CentOS Linux 7.2
-
-    RabbitMQ Server 3.6.10
-
-    Erlang OTP 20.0
-
-
+    CentOS Linux 7.2
+    
+    RabbitMQ Server 3.6.10
+    
+    Erlang OTP 20.0
 
 客户端环境：
 
-
-
-    JDK 11
-
-    IDEA 2019.1
-
-
+    JDK 11
+    
+    IDEA 2019.1
 
 # RabbitMQ分析
 
@@ -75,13 +67,9 @@ make install
 
 过程不再赘述，缺对应的包即安装缺少的包（baidu即可）。最后编辑环境变量，由于prefix已经指定了目录，剩下的配置和JDK的配置类似，最后可以输入erl命令看是否安装成功，如果安装成功，则会打印：
 
-
-
-    Erlang/OTP 20 [erts-9.1] [source] [64-bit] [smp:48:48] [ds:48:48:10] [async-threads:10] [hipe] [kernel-poll:false]
-
-    Eshell V9.1  (abort with ^G)
-
-
+    Erlang/OTP 20 [erts-9.1] [source] [64-bit] [smp:48:48] [ds:48:48:10] [async-threads:10] [hipe] [kernel-poll:false]
+    
+    Eshell V9.1  (abort with ^G)
 
 然后下载RabbitMQ的tar.gz包，使用tar xzvf 命令解压开，进入到解压后的目录下的bin目录中，输入`rabbitmq-server -detached`即可启动，并保持后台运行。
 
@@ -95,6 +83,10 @@ make install
 
 访问rabbitmq所在服务器的15672端口，即可访问控制台。
 
+当然，docker安装更为简单，无需上面那么多步骤，直接下载rabbitmq的镜像，然后一步搞定：
+
+`docker run -d  --name rabbitmq -p 25672:25672 -p 5672:5672 -p 15672:15672 rabbitmq:latest`
+
 # 代码整合
 
 这里采用父子模块的方案来构建整体骨架。点击New，新建一个Project，在弹出来的框中选择Maven选项，并勾选Create from archetype，选择maven-archetype-quickstart，新建项目后，删除src等源代码目录。在该项目里再New一个Module，同样是Maven项目，但是archetype选择maven-archetype-webapp。
@@ -102,8 +94,8 @@ make install
 父pom文件主要内容如下：
 
 ```xml
-   ...
-     <modules>
+   ...
+     <modules>
         <module>rabbit-provider</module>
         <module>rabbit-consumer</module>
         <module>rabbit-common</module>
@@ -140,8 +132,8 @@ make install
 消费者和生产者pom文件主要内容：
 
 ```xml
-    ...
-    <parent>
+    ...
+    <parent>
         <artifactId>simple-rabbit-demo</artifactId>
         <groupId>com.joy</groupId>
         <version>1.0-SNAPSHOT</version>
@@ -175,9 +167,9 @@ spring配置resources/applicationContext.xml如下：
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context
-		http://www.springframework.org/schema/context/spring-context.xsd">
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd">
 
     <context:property-placeholder location="classpath:rabbit.properties"></context:property-placeholder>
 
@@ -194,17 +186,17 @@ spring配置resources/applicationContext.xml如下：
 <?xml version="1.0" encoding="UTF-8"?>
  <web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee" xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd" version="2.5">
  <display-name>Archetype Created Web Application</display-name>
-     <listener>
-         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
-     </listener>
-     <context-param>
-         <param-name>contextConfigLocation</param-name>
-         <param-value>classpath:applicationContext.xml</param-value>
-     </context-param>
-     <!-- 防止spring内存溢出的监听器-->
-     <listener>
-         <listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
-     </listener>
+     <listener>
+         <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+     </listener>
+     <context-param>
+         <param-name>contextConfigLocation</param-name>
+         <param-value>classpath:applicationContext.xml</param-value>
+     </context-param>
+     <!-- 防止spring内存溢出的监听器-->
+     <listener>
+         <listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
+     </listener>
  </web-app>
 ```
 
@@ -298,7 +290,7 @@ public class AmqpTest {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
-    
+
 }
 ```
 
@@ -327,8 +319,8 @@ public class RabbitConfiguration {
         cachingConnectionFactory.setPassword(rabbitPassword);
         return cachingConnectionFactory;
     }
-    
-    /**
+
+    /**
      * 使用注解式驱动方法监听
 
      * @return
@@ -347,7 +339,7 @@ public class RabbitConfiguration {
     public AmqpAdmin amqpAdmin(){
         return new RabbitAdmin((connectionFactory()));
     }
-}    
+}
 ```
 
 ## 默认交换机
@@ -355,7 +347,7 @@ public class RabbitConfiguration {
 如果不指定交换机，只是指定了一个队列，那么该默认绑定到RabbitMQ上的一个默认交换机，类型为direct，并且其routingKey就是队列名，配置如下(无论配置在生产者还是消费者都可以，或者两者都配置也可以，如果不配置的话消费者可能会报没有找到队列的错误)：
 
 ```java
-    @Bean
+    @Bean
     public Queue defultQueue(){
         //默认durable为true，exclusive为false，auto-delete为false
 
@@ -396,7 +388,7 @@ public class Myservice {
 在生产者中测试类中，新建一个单元测试：
 
 ```java
-    @Test
+    @Test
     public void sendToDefaultQueue(){
         //使用默认交换机
         rabbitTemplate.convertAndSend("default-queue","默认队列");
@@ -412,7 +404,7 @@ public class Myservice {
 该类型交换机指定routingKey会无效，所以消息会发送到所有与该交换机绑定的队列上。在消费者或者生产者增加配置：
 
 ```java
-    //声明一个可以持久化的fanout交换机
+    //声明一个可以持久化的fanout交换机
     @Bean
     public Exchange testFanoutExchange(){
         return ExchangeBuilder.fanoutExchange("joy.fanout.exchange").durable(true).build();
@@ -445,7 +437,7 @@ public class Myservice {
 消费者的MyService类中新增两个方法消费消息：
 
 ```java
-    /**
+    /**
      * 监听第一个队列
      * @param data
      */
@@ -471,7 +463,7 @@ public class Myservice {
 生产者测试类中新增单元测试，并运行：
 
 ```java
-    @Test
+    @Test
     public void sendToFanoutExchange(){
         //自定义交换机以及与其绑定的对列名
         rabbitTemplate.setExchange("joy.fanout.exchange");
@@ -483,10 +475,8 @@ public class Myservice {
 
 消费者打印出：
 
-
-
-    fanout-queue2===>我是谁？我在哪？我要干什么？
-    fanout-queue1===>我是谁？我在哪？我要干什么？
+    fanout-queue2===>我是谁？我在哪？我要干什么？
+    fanout-queue1===>我是谁？我在哪？我要干什么？
 
 此时无论指定routingKey为什么都会发送到所有绑定到该fanout类型交换机的队列上，就和广播一样。
 
@@ -497,7 +487,7 @@ public class Myservice {
 配置如下：
 
 ```java
-    //声明一个direct类型的交换机
+    //声明一个direct类型的交换机
     @Bean
     public Exchange testDirectExchange(){
         return ExchangeBuilder.directExchange("joy.direct.exchange").durable(true).build();
@@ -507,7 +497,7 @@ public class Myservice {
     @Bean
     public Binding testDirectBinding1(){
         return BindingBuilder.bind(directQueue()).to(testDirectExchange()).with("queue-3").noargs();
-    }
+    }
     //声明第四个队列
     @Bean
     public Queue directQueue1(){
@@ -548,7 +538,7 @@ public class Myservice {
 这里和前面不同的一点是，这里是直接在方法参数里接收一个对象，如果需要这么做，那么该对象需要实现java的Serializable接口，并且指定一个messageConverter。拿常用的Json格式举例：首先需要在生产者中调整配置：
 
 ```java
-    @Bean
+    @Bean
     public AmqpTemplate rabbitTemplate(){
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
         rabbitTemplate.setMessageConverter(messageConverter());
@@ -564,7 +554,7 @@ public class Myservice {
 然后调整消费者的配置：
 
 ```java
-    /**
+    /**
      * 使用注解式驱动方法监听
      * @return
      */
@@ -589,7 +579,7 @@ public class Myservice {
 新增单元测试方法并执行：
 
 ```java
-    @Test
+    @Test
     public void sendToDirectExchange(){
         User user = new User();
         user.setName("刘会俊");
@@ -604,11 +594,185 @@ public class Myservice {
 
 消费者打印：
 
-
-
-    direct-queue3===>User{name='刘会俊', age=24}
-    direct-queue4===>User{name='刘半仙', age=124}
+    direct-queue3===>User{name='刘会俊', age=24}
+    direct-queue4===>User{name='刘半仙', age=124}
 
 ## Topic交换机
 
+在该类型的交换机中，约定routingKey和bindingKey由以"."分隔的字符串组成，并且可以使用"*"和"#"进行模糊匹配，其中\*表示匹配一个单词，#表示匹配多个单词。
 
+消费者新增两个监听：
+
+```java
+@RabbitListener(bindings = @QueueBinding(value = @Queue(value = "queue5",durable = "true"),
+            exchange = @Exchange(value = "joy.topic.exchange",type = ExchangeTypes.TOPIC,durable = "true"),key = "51.#"))
+    public void process5(User user){
+        System.out.println("51.#===>"+user.toString());
+    }
+
+    @RabbitListener(bindings = @QueueBinding(value = @Queue(value = "queue6",durable = "true"),
+            exchange = @Exchange(value = "joy.topic.exchange",type = ExchangeTypes.TOPIC,durable = "true"),key = "*.WEB.#"))
+    public void process6(User user){
+        System.out.println("*.WEB.#===>"+user.toString());
+    }
+```
+
+其中第一个监听的队列queue5匹配规则是以51.开头，后面有多个字符串或0个字符串；而第二个监听的队列queue6匹配规则是第一部分有一个单词，第二部分为"WEB"字符串的队列。
+
+生产者增加单元测试：
+
+```java
+    @Test
+    public void sendToTopicExchange(){
+        rabbitTemplate.setExchange("joy.topic.exchange");
+        User user = new User();
+        user.setName("刘二柱");
+        user.setAge(18);
+        rabbitTemplate.convertAndSend("51.APP.TS",user);
+        user.setName("刘一手");
+        user.setAge(20);
+        rabbitTemplate.convertAndSend("51.WEB.TS",user);
+    }
+```
+
+预期结果是：刘二柱会被发送到queue5，刘一手会发送到queue5和queue6。
+
+运行结果为：
+
+
+
+    51.#===>User{name='刘二柱', age=18}
+    *.WEB.#===>User{name='刘一手', age=20}
+    51.#===>User{name='刘一手', age=20}
+
+
+
+## 延迟队列和死信队列
+
+可以通过设置队列的ttl属性，或者发送消息时的消息属性expiration来实现延迟队列。当消息在ttl或者expiration时间没有消费时，则会进入死信队列（DLX），每一个队列实际上会有一个死信交换机属性，当我们给某个队列设置了死信交换机，并且给该交换机绑定了死信队列时，正常队列中没有消费者监听或者超时的消息都会经过死信交换机进入死信队列。
+
+配置正常队列以及对应的死信队列：
+
+```java
+    //声明一个正常队列，并添加定时时间和死信交换器路由
+    @Bean
+    public Queue normalQueue(){
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-message-ttl", 10000);
+        args.put("x-dead-letter-exchange", "joy.dead.direct.exchange");
+        args.put("x-dead-letter-routing-key", "dead-queue");
+        Queue normalQueue = new Queue("normal-queue",true,false,true,args);
+        return normalQueue;
+    }
+
+    //声明一个死信队列
+    @Bean
+    public Queue deadQueue(){return new Queue("dead-queue",true);}
+
+    //声明一个正常交换机
+    @Bean
+    public Exchange normalExchange(){
+        return ExchangeBuilder.directExchange("joy.normal.direct.exchange").durable(true).build();
+    }
+
+    //声明一个私心交换机
+    @Bean
+    public Exchange deadExchange(){
+        return ExchangeBuilder.directExchange("joy.dead.direct.exchange").durable(true).build();
+    }
+
+    //声明一个正常绑定关系
+    @Bean
+    public Binding normalBinding(){
+        return BindingBuilder.bind(normalQueue()).to(normalExchange()).with("normal-queue").noargs();
+    }
+
+    //将死信队列和死信交换机绑定上
+    @Bean
+    public Binding deadBinding(){
+        return BindingBuilder.bind(deadQueue()).to(deadExchange()).with("dead-queue").noargs();
+    }
+    
+    //声明一个正常队列1,绑定死信交换机和队列参数
+    @Bean
+    public Queue normalQueue1(){
+        Map<String, Object> args = new HashMap<>();
+        args.put("x-dead-letter-exchange", "joy.dead.direct.exchange");
+        args.put("x-dead-letter-routing-key", "dead-queue");
+        Queue normalQueue = new Queue("normal-queue1",true,false,true,args);
+        return normalQueue;
+    }
+
+    //声明一个正常绑定关系
+    @Bean
+    public Binding normalBinding1(){
+        return BindingBuilder.bind(normalQueue1()).to(normalExchange()).with("normal-queue1").noargs();
+    }
+```
+
+当然也可以在消费者监听的`@Queue`注解里新增参数argument，这里不再赘述，与上面的配置基本类似。当然，不光可以给队列设置ttl，也可以给消息设置expiration超时，所以上面又设置了一个normal-queue1，这个队列同样绑定了死信，auto-delete为true，并且没有设置ttl。
+
+消费者增加一个死信的监听器：
+
+```java
+     /**
+     * 监听死信队列消息
+     * @param user
+     */
+    @RabbitListener(queues = "dead-queue")
+    public void process7(User user){
+        System.out.println("dead-queue===>"+user.toString());
+    }
+```
+
+增加单元测试：
+
+```java
+    @Test
+    public void sendToNormalExchange(){
+        rabbitTemplate.setExchange("joy.normal.direct.exchange");
+        User user = new User();
+        user.setName("刘三胖");
+        user.setAge(18);
+        rabbitTemplate.convertAndSend("normal-queue",user);
+        user.setName("刘二丫");
+        user.setAge(18);
+        rabbitTemplate.convertAndSend("normal-queue1",user,message ->
+        {
+            message.getMessageProperties().setExpiration("10000");
+            return message;
+        });
+        user.setName("刘狗剩");
+        user.setAge(19);
+        rabbitTemplate.convertAndSend("normal-queue1",user);
+    }    
+```
+
+启动项目，会发现控制台中Queues页面多了两个队列如图：
+
+![Spring整合RabbitMQ\normal-queue](Spring整合RabbitMQ\normal-queue.png)
+
+其中AD表示自动删除，TTL表示队列设置了存活时间，DLX表示绑定了死信交换机，DLK表示死信交换机绑定了routingKey。
+
+预期结果：normal-queue的监听器由于设置了10s超时，所以10s以后，死信监听器监听到消息；normal-queue1中的刘二丫由于给消息设置了过期，所以10s以后死信队列也会收到消息；而刘狗剩则会一直待在队列中。
+
+运行结果：
+
+
+
+    dead-queue===>User{name='刘三胖', age=18}
+    dead-queue===>User{name='刘二丫', age=18}
+
+这两条信息恰好是10s打印的，而狗剩那条消息，则永远的留在了normal-queue1中，可以查看控制台，此处就不再贴图。
+
+
+
+# 参考
+
+本文Github代码地址：[https://github.com/liuhuijun11832/spring-rabbit-demo.git](https://github.com/liuhuijun11832/spring-rabbit-demo.git)
+
+参考：
+
+1. 《RabbitMQ实战指南》 朱忠华 著；
+
+2. 《Spring AMQP官方文档》[https://docs.spring.io/spring-amqp/docs/1.7.14.BUILD-SNAPSHOT/reference/html/](https://docs.spring.io/spring-amqp/docs/1.7.14.BUILD-SNAPSHOT/reference/html/) 。
