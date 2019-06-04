@@ -1,5 +1,5 @@
 ---
-title: Spring整合RabbitMQ
+title: Spring-RabbitMQ
 categories: 编程技术
 date: 2019-05-21 15:01:12
 tags: RabbitMQ

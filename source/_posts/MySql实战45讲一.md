@@ -1,5 +1,5 @@
 ---
-title: MySql实战45讲一
+title: MySql-实战45讲一
 categories: 学习笔记
 date: 2019-03-04 15:20:50
 tags:

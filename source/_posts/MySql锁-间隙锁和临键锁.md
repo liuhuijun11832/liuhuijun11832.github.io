@@ -1,5 +1,5 @@
 ---
-title: MySql锁-间隙锁和临键锁
+title: MySql-间隙锁和临键锁
 categories: 学习笔记
 date: 2019-03-20 08:54:55
 tags:

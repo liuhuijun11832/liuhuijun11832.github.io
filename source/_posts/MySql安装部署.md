@@ -1,5 +1,5 @@
 ---
-title: MySql安装部署
+title: MySql-安装部署
 categories: 编程技术
 date: 2019-03-04 15:05:53
 tags:
