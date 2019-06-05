@@ -1,5 +1,5 @@
 ---
-title: MySql Explain随记
+title: MySql-Explain随记
 categories: 编程技术
 date: 2019-03-05 11:03:03
 tags:
