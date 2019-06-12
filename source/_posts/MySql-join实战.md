@@ -91,7 +91,8 @@ t2表数据和t1表数据相差不多的情况下，由于t1只查一个字段�
 3. 排序以后到主键索引中依次查找记录，并作为结果返回。
 
 ## Batched Key Access
-对NLJ的一种优化：
+对NLJ的一种优化：join_buffer在NLJ中没有用上，所以5.6引入这个优化算法，用上了join_buffer，将驱动表里的数据尽可能多地取出放到join_buffer中，原来地NLJ是一行一行读取。
+首先需要开启一个设置:`set optimizer_switch='mrr=on,mrr_cost_based=off,batched_key_access=on';`BAK算法依赖于MRR。
 
 
 # 总结
