@@ -56,10 +56,13 @@ mysql> show variables like '%char%';
 如果需要远程互联网访问的话，需要使用如下语句开启权限：
 
 `mysql> grant all on *.* to 'root'@'%' identified by 'root'；`
+这个语句的含义是：
+1. 如果用户root@%不存在，就创建这个用户，密码是root；
+2. 如果用户root已经存在，就修改密码。
 
 **注：除修改密码和查询结果的操作外，其他操作必须在停止数据库的情况下进行。
 假如忘记了数据库密码或者不知道数据库密码，可以进入/etc/my.cnf文件[mysqld] 下加入了skip-grant-tables，输入密码的时候就可以不输入直接进入。修改密码以后再取消那段语句。也可以直接使用参数启动mysql的安全模式`/usr/local/mysql/bin/mysqld_safe --skip-grant-tables`，执行`update mysql.user set authentication_string=password('newpassword') where user='root' and Host = 'localhost';`和`flush privileges;`以后再以正常模式启动mysql**
-
+> `flush privileges`使用场景：当数据表中的权限数据和内存中的权限数据不一样时，例如上文中DML语句修改了mysql用户表中的用户信息。但是在执行grant语句以后或者revoke，由于这两种语句会同时更新内存和磁盘，所以不需要flush操作。
 # 使用原则
 摘录自互联网《mysql 36军规》：
 
