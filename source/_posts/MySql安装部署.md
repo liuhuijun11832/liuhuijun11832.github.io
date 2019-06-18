@@ -1,6 +1,6 @@
 ---
 title: MySql-安装部署
-categories: 编程技术
+categories: MySql
 date: 2019-03-04 15:05:53
 tags:
 - MySql

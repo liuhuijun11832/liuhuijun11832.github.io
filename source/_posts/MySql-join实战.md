@@ -1,6 +1,6 @@
 ---
 title: MySql-join实战
-categories: 编程技术
+categories: 学习笔记
 date: 2019-06-06 10:57:43
 tags: MySql
 keywords: [MySql]
@@ -8,7 +8,7 @@ description: mysql join语句在开发中的使用。
 ---
 # 简述
 Join语句在Mysql多表联查的使用中非常广泛，通常来说，开发人员的意识中都会觉得Join的查询效率比子查询要高，但是如果滥用时，Join的效率并不如人意。
-
+<!--more-->
 
 # Index Nested-Loop Join
 首先看一个sql语句：
@@ -39,7 +39,8 @@ select * from t2 where a=$R.a
 
 扫描行数也是m+n，但是客户端要多发100条语句，同时自己拼接语句和结果。
 
-可以看到在INL中，驱动表都是全表扫描n；被驱动表需要先扫描索引a（假如用到了索引），再搜索主键索引，每一个索引树所花费的时间都是log₂M，所以总的是`log₂M*2*N+N`，可以看出N对于时间复杂度的影响要更大。
+可以看到在INL中，驱动表都是全表扫描n；被驱动表需要先扫描索引a（假如用到了索引），再搜索主键索引
+，每一个索引树所花费的时间都是log₂M，所以总的是`log₂M*2*N+N`，可以看出N对于时间复杂度的影响要更大。
 
 # Simple Nested-Loop Join
 ```sql

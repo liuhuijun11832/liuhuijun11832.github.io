@@ -36,10 +36,7 @@ Spring Aop代理由Spring 的IOC容器生成，管理。所以AOP代理可以使
 xml方式：`<aop:aspectj-autoproxy proxy-target-class="true" />`
 ﻿spring boot:
 `@EnableAspectJAutoProxy﻿
-`使用Spring AOP进行编程，通常来说有以下三步：
-定义核心业务组件；
-定义切点和切面，一个切点和切面可以横跨多个业务；
-定义增强处理，这里就是AOP为业务组件织入的处理动作。
+`
 
 使用Spring AOP进行编程，通常来说有以下三步：
 
@@ -60,12 +57,10 @@ execution﻿​表达式即可，可以参考[https://docs.spring.io/spring/docs
 对应中文为execution(访问修饰符表达式？ 返回值类型表达式 名称表达式（参数表达式）异常表达式? )，除了名称表达式，其他表达式都可以不写，下面介绍几种常用的特殊通配符：
 访问修饰符表达式：不写代表所有访问修饰符；
 返回值类型表达式：\*在返回类型通配符中代表所有返回值类型；
-名称通配符：\*在名称通配符中是代表所有的意思，.在名称通配符中代表当前包或者当前类，..两个点表示当前包以及子包；
-参数表达式：不写表示无参方法，..表示0或多个参数，\*表示任何类型的一个参数，那么\*，String就表示一个任意类型的参数+一个String类型的参数；
-异常表达式：格式为throws(*)表示所有异常。
+名称通配符：`*`在名称通配符中是代表所有的意思，`.`在名称通配符中代表当前包或者当前类，`..`两个点表示当前包以及子包；
+参数表达式：不写表示无参方法，`..`表示0或多个参数，`*`表示任何类型的一个参数，那么`*，String`就表示一个任意类型的参数+一个String类型的参数；
+异常表达式：格式为`throws(*)`表示所有异常。
 那么贴出切点定义：
-
-
 ```java	
 @Pointcut(value="execution(public*com.blog.controller..*.*(..))")
 	public void pointCut(){
@@ -205,59 +200,6 @@ step2:定义切点和增强，这里我想更灵活一些，通过注解实现�
 数据源配置：
 
 
-	```java
-	@EnableAspectJAutoProxy
-	@SpringBootApplication(exclude = DataSourceAutoConfiguration.class)
-	@MapperScan("com.blog.mapper")
-	public class MyBlogApplication {
-
-	    /**
-		 *@description: DataSourceBuilder是spring 默认创建DataSource的建造者
-		 *@author: 刘会俊
-		 *@params: []
-		 *@return: javax.sql.DataSource
-		 */
-		@Bean(name="ds1")
-		@ConfigurationProperties(prefix = "spring.datasource.db1")
-		public DataSource dataSource1(){
-			return DataSourceBuilder.create().build();
-		}
-	
-	
-		@Bean(name="ds2")
-		@ConfigurationProperties(prefix = "spring.datasource.db2")
-		public DataSource dataSource2(){
-			return DataSourceBuilder.create().build();
-		}
-	    /**
-		 *@description: 由于这里有三个同为DataSource的bean，所以spring在设置jdbc连接的数据源时不知道用哪个，使用Primary注解表示spring优先使用这个datasource，这样就可以实现动态切换了
-		 *
-		 *@author: 刘会俊
-		 *@params: []
-		 *@return: javax.sql.DataSource
-		 */
-		@Primary
-		@Bean(name = "dynamicDateSource" )
-		public DataSource dynamicDatasource(){
-			DynamicDatasource dynamicDatasource = new DynamicDatasource();
-			dynamicDatasource.setDefaultTargetDataSource(dataSource1());
-			Map<Object, Object> map = new HashMap<>();
-			map.put("ds1", dataSource1());
-			map.put("ds2", dataSource2());
-			dynamicDatasource.setTargetDataSources(map);
-			return dynamicDatasource;
-		}
-	
-		@Bean
-		public PlatformTransactionManager transactionManager(){
-			return new DataSourceTransactionManager(dynamicDatasource());
-		}
-	
-		public static void main(String[] args) {
-			SpringApplication.run(MyBlogApplication.class, args);
-		}
-	}
-```
 
 ## 场景3：动态切换﻿﻿数据源
 
@@ -290,7 +232,8 @@ step2:
         // 从自定义的位置获取数据源标识
         return DataSourceContextHolder.getDataSource();
    	 }
-	}```
+	}
+```
 	
 使用自定义注解：
 
