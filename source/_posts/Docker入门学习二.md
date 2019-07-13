@@ -21,7 +21,7 @@ description: 构建和编排自己的Docker应用
 
 注释行加指令行。
 
-作用
+作用:
 
 * 快速迁移、部署；
 * 记录了镜像构建顺序和逻辑；
@@ -30,7 +30,7 @@ description: 构建和编排自己的Docker应用
 
 <!--more-->
 
-## 结构
+# 结构
 
 * 基础指令：定义新镜像的基础和性质；
 * 控制指令：指导镜像构建的核心部分，用于描述镜像在构建过程中需要执行的指令；
@@ -38,9 +38,9 @@ description: 构建和编排自己的Docker应用
 * 执行指令：为容器指定在启动时需要执行的脚本或指令；
 * 配置命令：配置网络、用户等。
 
-## 常见指令
+# 常见指令
 
-### FROM
+***FROM***
 
 一般情况下，我们不会从0开始搭建一个基础镜像，而是会选择一个已经存在的镜像为基础。
 
@@ -50,7 +50,7 @@ description: 构建和编排自己的Docker应用
 
 也可以用该指令合并两个镜像的功能。
 
-### RUN
+***RUN***
 
 用于向控台发送命令。
 
@@ -59,7 +59,7 @@ description: 构建和编排自己的Docker应用
 
 支持反斜杠换行。
 
-### ENTRYPOINT/CMD
+***ENTRYPOINT/CMD***
 
 用于启动容器内的主程序。
 
@@ -69,7 +69,7 @@ description: 构建和编排自己的Docker应用
     CMD["param1","param2"]
     CMDdommandparam1param2
 
-### EXPOSE
+***EXPOSE***
 
 为容器暴露指定端口。
 
@@ -78,13 +78,13 @@ description: 构建和编排自己的Docker应用
 两个命令大体相近，都可以为空。
 当两个命令同时给出时，CMD的内容会作为ENTRYPOINT定义的命令的参数。
 
-### VOLUME
+***VOLUME***
 
 定义数据卷目录
 
     VOLUME["/data"]
 
-### COPY/ADD
+***COPY/ADD***
 
 从宿主机的文件系统里拷贝内容到镜像里的文件系统中。
 
@@ -96,7 +96,7 @@ src和dest外可以加""。
 
 `docker build <path>`path可以为本地路径或者URL路径，但并不是dockerfile文件路径，而是构建环境目录，-f可以指定dockerfile文件位置，未指定的话默认就在环境目录下去找，-t可以指定新生成镜像的名称。
 
-### ARG
+***ARG***
 
 定义一个变量，变量只可以在build时传进来，只在当前镜像内有效。
 例如dockerfile如下：
@@ -113,7 +113,7 @@ RUN wget -0 tomcat.tar.gz "http//...$TOMCAT_MAJOR:$TOMCAT_VERSION..."
 
 在build时，可以这样传入参数：`docker build --build-arg TOMCAT_MAJOR=8 --build-arg TOMCAT_VERSION=8.0.53 ./`
 
-### ENV
+***ENV***
 
 定义一个环境变量，环境变量在所有基于此镜像的镜像内都生效，并且可以指定值。
 
@@ -128,9 +128,9 @@ RUN wget -0 tomcat.tar.gz "http//...$TOMCAT_MAJOR:$TOMCAT_VERSION..."
 取值与ARG一致，使用美元符号取值符，当ARG与ENV的名字重复时，ENV会覆盖ARG，同时ENV的值也可以通过运行时选项-e或者-env传入：
 `docker run -e <key>=<value> <image>`。
 
-## 指令实战
+# 指令实战
 
-### 实战
+## 实战
 
 构建一个Spring Boot（我的博客）项目，dockerfile如下：
 
@@ -148,7 +148,7 @@ ENTRYPOINT ["java","-jar","-Dlogging.file=/spring.log","/app.jar"]
 Spring Boot项目启动时是默认以/tmp目录作为tomcat的工作目录的，所以最好挂载一个宿主机到容器中，虽然对于这个简单项目这一步是可选的，但是对于其他Spring Boot项目可能是必须的。
 使用COPY或者ADD命令拷贝程序到镜像文件系统中，然后最后一步是主要指令，需要记住：第一个是命令，每多一条参数，请多一个""（双引号），不然会报Unrecognized option: -jar -Dlogging.file=/spring.log（无法识别选项）的错。最后一步：docker build ./ -t myblog开始构建镜像，记住镜像名只能小写。
 
-### 技巧
+## 技巧
 
     #对于能够合并的多条指令，推荐合并。以下两种效果时一样的，但是推荐第一种
     RUN apt-get update;\
@@ -226,12 +226,12 @@ volumes:
 `docker-compose down`：停止所有容器，并将他们删除。
 "随用随删，随用随启"
 
-### 容器编排命令
+## 容器编排命令
 
     docker-compose logs <cointainer>：查看集群中某个容器内主进程日志
     docker-compose create/start/stop/ <cointainer> ：创建/启动/停止集群内某个容器
 
-### 常用配置
+## 常用配置
 
 ```yaml
 version: "3"
@@ -309,7 +309,7 @@ volumes:
         # exernal: true
 ```
 
-### Docker Compose 实战
+## Docker Compose 实战
 
 现有如下几个服务：
 
