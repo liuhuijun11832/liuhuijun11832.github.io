@@ -1,6 +1,6 @@
 ---
 title: 深入Tomcat/Jetty-Jetty连接器
-categories: 编程技术
+categories: 学习笔记
 date: 2019-07-18 14:29:18
 tags:
 - Tomcat
@@ -39,7 +39,10 @@ public class ManagedSelector extends ContainerLifeCycle implements Dumpable
     ...
 }
 ```
+<!--more-->
+
 ## SelectorUpdate接口
+
 Jetty将Channel注册到Selector的事件抽象为SelectorUpdate接口，如果操作ManageSelector中的Selector，需要提交一个任务类，这个类需要实现接口的update方法，在方法里定义想要的操作。
 
 例如Connector中Endpoint组件对读就绪事件感兴趣，于是就向ManagedSelector提交了一个内部任务类ManagedSelector.SelectorUpdate，并在update方法里调用updateKey方法，这些update方法的调用者就是ManagedSelector自己，它在一个死循环里拉取这些SelectorUpdate任务类逐个执行。
