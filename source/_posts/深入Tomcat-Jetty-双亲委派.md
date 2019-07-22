@@ -36,4 +36,26 @@ JDK类加载器:
 
 # Tomcat类加载器
 
-WebAppClassLoader：
+WebAppClassLoader：打破双亲委派机制（重写loadClass方法），首先尝试自己去加载，然后才会去super.loadClass()。本地Cache-Tomcat类加载器-ExtClassLoader-本地目录搜索-AppClassLoader，使用ExtClassLoader是为了自己的重名类会覆盖JDK原声的类，所有优先使用Ext，Class.forName()默认是AppClassLoader。
+
+原因：Servlet规定：至于这个类不覆盖Jre核心类，那么优先加载Web应用下的类。
+
+结构如下：
+
+![Tomcat-ClassLoader.png](深入Tomcat-Jetty-双亲委派/Tomcat-ClassLoader.png)
+
+
+
+CatalinaClassLoader：加载Tomcat自身启动所需要的类；
+
+ShareClassLoader：加载Web应用之间共享的类；
+
+CommonClassLoader：加载Tomcat和Web应用之间都需要用到的类。
+
+# Spring的类加载问题
+
+**JVM隐藏规则：如果一个类由类加载器A加载，那么这个类的依赖类也是由相同的类加载器加载。**
+
+Spring 是通过Class.forName(String name)来加载业务类，可以看到加载业务类也是用的Spring的类加载器。
+
+线程上下文：类加载器传递机制，保存在线程私有数据里，只要是同一个线程，一旦设置了线程上下文，后续执行过程中就可以取出该类加载器，每一个Web应用就是对应一个WebAppClassLoader，这样Spring在启动时就将线程上下文加载器取出来用来加载Bean。
