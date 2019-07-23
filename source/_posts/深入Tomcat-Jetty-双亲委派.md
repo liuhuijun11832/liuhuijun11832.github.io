@@ -36,4 +36,24 @@ JDK类加载器:
 
 # Tomcat类加载器
 
-WebAppClassLoader：
+结构：
+
+![Tomcat-ClassLoader.png](深入Tomcat-Jetty-双亲委派/Tomcat-ClassLoader.png)
+
+CommonClassLoader：加载那些能在Web应用和Tomcat之间共享的类；
+
+SharedClassLoader：Web应用之间能够共享的类，比如Spring；
+
+CatalinaClassLoader：加载Tomcat自身需要的类；
+
+WebAppClassLoader：每一个Web应用都有自己的WebAppClassLoader，打破了双亲委派，它会首先从本地缓存查找是否加载过，然后再去使用父加载器去查找，如果没有接着会使用ExtClassLoader（也可以说会使用BootstrapClassLoader，避免Web应用的类覆盖JRE类），然后会在本地文件系统中查找，最后会交由系统类加载器（因为Class.forName默认使用的就是AppClassLoader）。
+
+> Spring 加载也是通过Class.forName的方式加载的，并且Spring加载Bean也是用的加载Spring的类加载器。
+
+*通常Spring是用SharedClassLoader来加载，但是业务类又应该使用WebAppClassLoader来加载，所以Tomcat在启动的时候会设置线程上下文加载器，Spring在启动时可以通过`Thrad.currentThread().getContextClassLoader()`来获取类加载器来加载业务类。*
+
+# 总结
+
+* 第三方Jar包加载特定Web应用的类，可以通过线程上下文加载器来实现；
+* 每个WEB应用自己的Java类文件和JAR包，分别放在WEB-INF/lib和WEB-INF/classes目录中；
+* 多个WEB应用共享类，放在Web容器指定的共享目录下。
