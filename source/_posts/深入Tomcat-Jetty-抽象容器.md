@@ -3,8 +3,10 @@ title: 深入Tomcat/Jetty-抽象容器
 categories: 编程技术
 date: 2019-07-19 14:51:31
 tags:
-keywords:
-description:
+- Tomcat
+- Jetty
+keywords: [Tomcat,Jetty]
+description: 深入学习Tomca和Jetty
 ---
 
 # Tomcat-Host容器
@@ -55,3 +57,218 @@ webapploader的工作：
 - 如果有新的War包，就部署相应的应用。
 
 宏观webapps目录级别，而不是web应用目录下文件的变化。
+
+# Servlet管理
+
+Wrapper：核心：变量`Field Servlet`，方法`Method loadServlet`用来创建servlet并初始化（Servlet规范要求）。
+
+执行时期：延迟加载，用到时才会加载该Servlet，除非在web.xml里设置了loadOnStartUp=true，但是Wrapper会在Tomcat启动时就会被创建。
+
+机制：Pipeline-Valve链，每一个容器都有一个BasicValve，Wrapper的BasicValve为StandardWrapperValve。
+
+步骤：
+
+1. 创建Servlet实例；
+2. 给当前请求创建一个Filter链；
+3. 调用这个Filter链，链中的最后一个Filter会调用Servlet。
+
+# Filter管理
+
+可以在web.xml里配置，所以Filter的实例是在Context容器中管理的，本质上是用一个HashMap来保存Filter。
+
+Filter生命周期很短，是和每次请求对应的，请求结束这个Filter链就结束了。
+
+核心：ApplicationFilterChain，每个链包含了末尾的链所要调用的Servlet。
+
+最后会调用servlet的service方法。
+
+本质上和Pipeline-Valve都是一样的责任链模式，但是它的实现方式是：**FilterChain有doFilter方法，并且每一个Filter首先调用FilterChain的doFilter方法，由于Filter链中会保存当前Filter所在的位置，这样就会调用下一个Filter的doFilter方法，形成了一个链式调用。**
+
+# Listener管理
+
+可以在web.xml里配置，所以Listener也是在Context容器中管理的。Listener可以监听容器内生命状态的变化（比如Context容器的启动和停止，Session的创建和销毁），或者Context、Session的某个属性变了或者新的请求来了等等。
+
+```java
+// 监听属性值变化的监听器,每个请求的属性可能不一样，所以要保证线程安全，并且写多读少
+private List<Object> applicationEventListenersList = new CopyOnWriteArrayList<>();
+
+// 监听生命事件的监听器，Context容器的启动和停止是能保证线程安全，所以这里直接用数组
+private Object applicationLifecycleListenersObjects[] = new Object[0];
+
+```
+
+Tomcat定义了ServletContextListener接口作为第三方扩展，在启动的时候遍历所有该类型的监听器触发事件，Spring就是实现了这个接口，监听Context的启停事件，和LifecycleListener不同的是，LifecycleListener定义在生命周期管理组件中，由基类LifecycleBase统一管理。
+
+# 异步Servlet
+
+用法：`@WebServlet(urlPatterns = {"/async"}, asyncSupported = true)`；
+
+异步默认超时时长：30s；
+
+原理：req.startAsync和ctx.complete，前者创建一个异步上下文AsyncContext对象，用来保存request和response等上下文信息；
+
+CoyoteAdapter：flush数据把响应发回浏览器；如果是异步请求，就设置一个异步标志为truel，并在随后的ProtocolHandler判断该标志，如果是一个异步请求，那么它会把当前的Socket的协议处理者Processor缓存起来，将SocketWrapper对象响应的Processor存到一个Map数据结构里。
+
+ctx.complete：调用request的action方法，通知连接器这个请求处理完了---->传入操作码processSocketEvent---->processSocket---->创建SocketProcess任务类---->交给Tomcat线程池处理。
+
+适合场景：I/O密集型业务。
+
+# 内嵌式的Tomcat
+
+以Spring Boot为例，它抽象了WebServer接口，提供给Tomcat和Jetty去实现：
+
+```java
+public interface WebServer {
+    void start() throws WebServerException;
+    void stop() throws WebServerException;
+    int getPort();
+}
+```
+
+同时还提供了ServletWebServerFactory来创建容器，即返回WebServer。
+
+```java
+public interface ServletWebServerFactory {
+    WebServer getWebServer(ServletContextInitializer... initializers);
+}
+```
+
+其中`ServletContextInitializer`就是ServletContext的初始化器，并且在getWebServer方法中会调用onStartUp方法，所以如果想在Servlet容器中注册自己的Servlet，可以实现该接口。
+
+WebServletFactoryCutomizerBeanPostProcessor：这是一个BeanPostProcessor，在postProcessBeforeInitialization过程中寻找WebServerFactoryCustomizer类型的Bean，并依次调用WebServerFactoryCustomizer接口的customize方法做一些定制化。
+
+## 启动过程
+
+Spring核心：ApplicationContext；
+
+抽象类：AbstractApplicationContext；
+
+方法：refresh()或者onRefresh()；
+
+原理：ServletWebServerApplicationContext重写了onRefresh方法创建内嵌式Web容器；
+
+```java
+public WebServer getWebServer(ServletContextInitializer... initializers) {
+    //1. 实例化一个 Tomcat，可以理解为 Server 组件。
+    Tomcat tomcat = new Tomcat();
+    
+    //2. 创建一个临时目录
+    File baseDir = this.baseDirectory != null ? this.baseDirectory : this.createTempDir("tomcat");
+    tomcat.setBaseDir(baseDir.getAbsolutePath());
+    
+    //3. 初始化各种组件
+    Connector connector = new Connector(this.protocol);
+    tomcat.getService().addConnector(connector);
+    this.customizeConnector(connector);
+    tomcat.setConnector(connector);
+    tomcat.getHost().setAutoDeploy(false);
+    this.configureEngine(tomcat.getEngine());
+    
+    //4. 创建定制版的 "Context" 组件。
+    this.prepareContext(tomcat.getHost(), initializers);
+    return this.getTomcatWebServer(tomcat);
+}
+```
+
+## 注册Servlet的方式
+
+### 注解式
+
+Spring Boot 的配置类需要开启@ServletComponentScan用于扫描@WebServlet、@WebFilter、@WebListener等。
+
+### Java Config
+
+在Spring的配置类中加入Bean：
+
+```java
+@Bean
+public ServletRegistrationBean servletRegistrationBean() {
+    return new ServletRegistrationBean(new HelloServlet(),"/hello");
+}
+```
+
+### 动态注册
+
+实现前文提到的上下文初始化类：
+
+```java
+@Component
+public class MyServletRegister implements ServletContextInitializer {
+
+    @Override
+    public void onStartup(ServletContext servletContext) {
+    
+        //Servlet 3.0 规范新的 API，动态注册新的Servlet
+        ServletRegistration myServlet = servletContext
+                .addServlet("HelloServlet", HelloServlet.class);
+                
+        myServlet.addMapping("/hello");
+        
+        myServlet.setInitParameter("name", "Hello Servlet");
+    }
+
+}
+```
+
+> 这里需要注意的是，其实ServletRegistrationBean也是通过实现ServletContextInitializer来实现的，会交给Spring来管理。而ServletContainerInitializer的实现类是被Tomcat管理的。
+
+## Web容器定制
+
+在Spring Boot 2.0中，可以通过两种方式定制Web容器：
+
+- 通过Web容器工程ConfigurableServletWebServerFactory来定制参数：
+
+```java
+@Component
+public class MyGeneralCustomizer implements
+  WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> {
+  
+    public void customize(ConfigurableServletWebServerFactory factory) {
+        factory.setPort(8081);
+        factory.setContextPath("/hello");
+     }
+}
+```
+
+- 通过特定web容器的工厂，比如TomcatServletWebServerFactory来进一步定制：
+
+```java
+@Component
+public class MyTomcatCustomizer implements
+        WebServerFactoryCustomizer<TomcatServletWebServerFactory> {
+
+    @Override
+    public void customize(TomcatServletWebServerFactory factory) {
+        factory.setPort(8081);
+        factory.setContextPath("/hello");
+        factory.addEngineValves(new TraceValve() );
+
+    }
+}
+//实现追踪分布式项目中的路径
+class TraceValve extends ValveBase {
+    @Override
+    public void invoke(Request request, Response response) throws IOException, ServletException {
+
+        request.getCoyoteRequest().getMimeHeaders().
+        addValue("traceid").setString("1234xxxxabcd");
+
+        Valve next = getNext();
+        if (null == next) {
+            return;
+        }
+
+        next.invoke(request, response);
+    }
+
+}
+```
+
+# Jetty-HandlerWrapper
+
+Jetty通过HndlerWrapper实现责任链。
+
+WebAppContext -> SessionHandler -> SecurityHandler -> ServletHandler。
+
+核心：`protected Handler _handler`，持有下一个Hadnler的引用，并且会在handle方法里执行下一个Handler。
+
