@@ -272,3 +272,4 @@ WebAppContext -> SessionHandler -> SecurityHandler -> ServletHandler。
 
 核心：`protected Handler _handler`，持有下一个Hadnler的引用，并且会在handle方法里执行下一个Handler。
 
+ScopeHandler：核心Handler，被间接或者直接地继承。
