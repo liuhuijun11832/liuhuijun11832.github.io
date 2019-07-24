@@ -210,7 +210,7 @@ public class MyServletRegister implements ServletContextInitializer {
 }
 ```
 
-> 这里需要注意的是，其实ServletRegistrationBean也是通过实现ServletContextInitializer来实现的。
+> 这里需要注意的是，其实ServletRegistrationBean也是通过实现ServletContextInitializer来实现的，会交给Spring来管理。而ServletContainerInitializer的实现类是被Tomcat管理的。
 
 ## Web容器定制
 
@@ -263,4 +263,12 @@ class TraceValve extends ValveBase {
 
 }
 ```
+
+# Jetty-HandlerWrapper
+
+Jetty通过HndlerWrapper实现责任链。
+
+WebAppContext -> SessionHandler -> SecurityHandler -> ServletHandler。
+
+核心：`protected Handler _handler`，持有下一个Hadnler的引用，并且会在handle方法里执行下一个Handler。
 
