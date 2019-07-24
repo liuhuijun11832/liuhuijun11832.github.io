@@ -272,4 +272,12 @@ WebAppContext -> SessionHandler -> SecurityHandler -> ServletHandler。
 
 核心：`protected Handler _handler`，持有下一个Hadnler的引用，并且会在handle方法里执行下一个Handler。
 
-ScopeHandler：核心Handler，被间接或者直接地继承。
+ScopeHandler：核心Handler，被间接或者直接地继承，`_handler`是持有的下一个Handler的引用，并且会在handler方法里调用下一个Handler；
+
+* `_outerScope`：根据它是否为null来判断使用doScope()还是doHandler()，头节点肯定为null，其他节点的该字段肯定指向Handler链中头节点，言下之意---如果是头节点，就执行doScope，如不是头节点，执行doHandler；
+* `__outerScope`：使用ThreadLocal<ScopeHandler>进行包装，在需要时取出赋值给`_outerScope`，由于一般不能在上下文作为参数传递，所以这里作为线程私有变量；
+* `_nextScope`：表示下一个`ScopeHandler`，和`_handler`区别在于，`_handler`的下一位可能是Wrapperx，而`_nextScope`表示下一个必须是`ScopeHandler`。
+
+通过这几个参数，保证让ScopeHandler链上的doScope方法在doHandle、handle方法之前执行，并且保证不同ScopeHandler的doScope都是按照它在链上的先后顺序执行。
+
+ContextHandler：ScopeHandler的子类，类似于Tomcat中的Context组件，对应一个Web应用，功能是给Servlet的执行维护一个上下文环境，并且将请求转发到相应的Servlet，doHJandler里做了请求的修正，类加载器设置，以及调用nextScope。
