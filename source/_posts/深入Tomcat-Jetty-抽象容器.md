@@ -25,11 +25,13 @@ description: 深入学习Tomca和Jetty
 
 ContainerBackgroundProcessor，ContainerBase内部类，实现Runnable接口；
 
-执行当前容器里的backgroundProcess方法，并且递归调用子容器的backgroundProcess方法，如果子容器的backgroundProcessorDelay大于0，表明子容器有自己的线程，所以此时就不用父类来调用；
+执行当前容器里的`backgroundProcess()`，并且递归调用子容器的`backgroundProcess()`，如果子容器的backgroundProcessorDelay大于0，表明子容器有自己的线程，所以此时就不用父类来调用；
 
 这个方法是接口中的默认方法，所以顶层engine启动后台线程以后，它会启动顶层engine以及子engine的周期性任务。
 
 由于ContainerBase是所有组件基类，所以其他组件都可以由自己的周期性任务。
+
+<!--more-->
 
 ## 热加载
 
@@ -268,16 +270,114 @@ class TraceValve extends ValveBase {
 
 Jetty通过HndlerWrapper实现责任链。
 
-WebAppContext -> SessionHandler -> SecurityHandler -> ServletHandler。
+`WebAppContext` -> `SessionHandler` ->` SecurityHandler` ->` ServletHandler`。
 
 核心：`protected Handler _handler`，持有下一个Hadnler的引用，并且会在handle方法里执行下一个Handler。
 
 ScopeHandler：核心Handler，被间接或者直接地继承，`_handler`是持有的下一个Handler的引用，并且会在handler方法里调用下一个Handler；
 
-* `_outerScope`：根据它是否为null来判断使用doScope()还是doHandler()，头节点肯定为null，其他节点的该字段肯定指向Handler链中头节点，言下之意---如果是头节点，就执行doScope，如不是头节点，执行doHandler；
-* `__outerScope`：使用ThreadLocal<ScopeHandler>进行包装，在需要时取出赋值给`_outerScope`，由于一般不能在上下文作为参数传递，所以这里作为线程私有变量；
+* `_outerScope`：根据它是否为null来判断使用`doScope()`还是`doHandler()`，头节点肯定为null，其他节点的该字段肯定指向Handler链中头节点，言下之意---如果是头节点，就执行doScope，如不是头节点，执行doHandler；
+* `__outerScope`：使用`ThreadLocal<ScopeHandler>`进行包装，在需要时取出赋值给`_outerScope`，由于一般不能在上下文作为参数传递，所以这里作为线程私有变量；
 * `_nextScope`：表示下一个`ScopeHandler`，和`_handler`区别在于，`_handler`的下一位可能是Wrapperx，而`_nextScope`表示下一个必须是`ScopeHandler`。
 
 通过这几个参数，保证让ScopeHandler链上的doScope方法在doHandle、handle方法之前执行，并且保证不同ScopeHandler的doScope都是按照它在链上的先后顺序执行。
 
-ContextHandler：ScopeHandler的子类，类似于Tomcat中的Context组件，对应一个Web应用，功能是给Servlet的执行维护一个上下文环境，并且将请求转发到相应的Servlet，doHJandler里做了请求的修正，类加载器设置，以及调用nextScope。
+ContextHandler：ScopeHandler的子类，类似于Tomcat中的Context组件，对应一个Web应用，功能是给Servlet的执行维护一个上下文环境，并且将请求转发到相应的Servlet，doHandler里做了请求的修正，类加载器设置，以及调用nextScope。
+
+# Spring框架中的设计模式
+
+简单工厂：`interface BeanFactory`，使用方式：`beanFatory.get("userService")`；
+
+工厂方法：`interface FactoryBean`，使用方式：定义一个类`UserFactory`实现`FactoryBean`，那`UserFactory`所产生的实例就都是User了；
+
+单例模式：`private final Map<String,Object> singletonObjects = new ConcurrentHashMap<String,Object>;`先到HashMap中获取对象，如果没有拿到，则通过`Class.forName(String)`反射创建一个实例并添加到`singletonObjects`里。
+
+代理模式：
+
+* 抽象接口：代理角色和被代理角色都要实现该接口；
+* 目标对象：被代理的对象，用于实现业务；
+* 代理对象：内部含有对目标对象的引用，在执行目标对象的前后执行一部分逻辑。
+
+静态代理：
+
+```java
+//抽象接口
+public interface IStudentDao(){
+    void save();
+}
+//目标对象
+public class StudentDao implements IStudentDao(){
+	public void save(){
+		System.out.println("保存成功");
+	}
+}
+//代理对象
+public class StudentDaoProxy implements IStudentDao(){
+	private IStudentDao target;
+	public StudentDaoProxy(IStudentDao target){
+		this.target = target;
+	}
+	public void save(){
+		System.out.pritln("我增强了某某某");
+		target.save();
+		System.out.pritln("增强结束了");
+	}
+}
+```
+
+Spring Aop采用的是动态代理：
+
+```java
+//代理对象不是自己生成，而是由InvocationHandler生成和管理
+public class MyInvocationHandler implements InvocationHandler {
+
+    private Object object;
+
+    public MyInvocationHandler(Object object) {
+        this.object = object;
+    }
+
+    @Override
+    public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+        System.out.println("开始事务");
+        Object result = method.invoke(object, args);
+        System.out.println("结束事务");
+        return result;
+    }
+}
+//测试
+public static void main(String[] args) {
+        IStudentDao stuDao = new StudentDao();
+        InvocationHandler handler = new MyInvocationHandler(stuDao);
+        IStudentDao studentDao = (IStudentDao) Proxy.newProxyInstance(stuDao.getClass().getClassLoader(), stuDao.getClass().getInterfaces(), handler);
+        studentDao.save();
+    }
+```
+
+> Spring Aop有两种代理方式：JDK（`JdkDynamicAopProxy implements InvocationHandler`）；Cglib（`CglibAopProxy`）。
+
+```java
+JDK 8
+class Proxy:
+
+ private static final Class<?>[] constructorParams =
+        { InvocationHandler.class };
+//newProxyInstance：
+public static Object newProxyInstance(ClassLoader loader, Class<?>[] interfaces, InvocationHandler h)
+        throws IllegalArgumentException {
+    //通过ProxyClassFactory调用ProxyGenerator生成了代理类
+    Class<?> cl = getProxyClass0(loader, intfs);
+    //找到参数为InvocationHandler.class的构造函数
+    final Constructor<?> cons = cl.getConstructor(constructorParams);
+    //创建代理类实例
+    return cons.newInstance(new Object[]{h});
+}
+
+
+//在ProxyGenerator类中：
+public static byte[] generateProxyClass(final String name,Class<?>[] interfaces, int accessFlags)){}
+private byte[] generateClassFile() {}
+//根据接口生成实现类的字节码文件
+```
+
+而Cglib使用的是字节码拼接，不依赖接口，更强大更灵活。

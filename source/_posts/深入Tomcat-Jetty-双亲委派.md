@@ -23,6 +23,8 @@ Java实现：`abstract class：ClassLoader`，包含`private final ClassLoader p
 
 findClass：从本地文件系统或者网络中寻找.class文件读入到内存；将读入内存的字节数组转成Class对象。
 
+<!--more-->
+
 JDK类加载器:
 
 ![深入Tomcat/Jetty-双亲委派/JDK-ClassLoader.png](深入Tomcat-Jetty-双亲委派/JDK-ClassLoader.png)
