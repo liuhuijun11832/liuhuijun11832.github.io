@@ -97,4 +97,15 @@ Formatter：通过format方法将日志记录LogRecord转化成格式化的字�
 18:06:33.860 INFO  {main} [o.a.c.a.AjpNioProtocol] : Starting ProtocolHandler ["ajp-nio-8009"]
 ```
 
+# Session管理
 
+## Session的创建
+
+Context中的`integer Manager`，默认实现类是`StandardManager`。
+
+主要API：
+
+* load：持久化；
+* unload：从磁盘加载；
+* getSession：获取该次请求的session，如果参数为ture，不存在时会新建；
+* 
