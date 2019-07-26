@@ -1,5 +1,5 @@
 ---
-title: 深入Tomcat/Jetty-两种容器的基本架构
+title: 深入Tomcat/Jetty-基本架构
 date: 2019-07-18 14:10:37
 categories: 学习笔记
 tags:
@@ -50,7 +50,7 @@ Adapter组件：
 
 通过Mapper组件来实现组件与访问路径的映射关系。
 
-调用过程通过Pipeline-Value责任链来实现，其中Value是节点的接口，Pipeline是组装链的接口。每一个子容器都有一个PipleLine对象，只要Adapter触发第一个Value，整个链都会执行，而最后一个Value又会调用下层子容器的Pipleline中的第一个Value，并由Value来invoke。Wrapper的最后Value会创建一个FilterChain，并执行doFilter方法。
+调用过程通过Pipeline-Valve责任链来实现，其中Valve是节点的接口，Pipeline是组装链的接口。每一个子容器都有一个PipleLine对象，只要Adapter触发第一个Valve，整个链都会执行，而最后一个Valve又会调用下层子容器的Pipleline中的第一个Valve，并由Valve来invoke。Wrapper的最后Valve会创建一个FilterChain，并执行doFilter方法。
 
 ## 生命周期
 LifeCycle接口定义了init，start，stop，destroy等方法，通过上层组件的状态变化触发子组件的状态变化，同时状态变化作为一种事件，通过观察者模式来监听到事件变化。

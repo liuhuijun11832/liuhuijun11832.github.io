@@ -1,12 +1,12 @@
 ---
-title: 深入Tomcat/Jetty-Tomcat连接器
+title: 深入Tomcat/Jetty-连接器
 categories: 学习笔记
 date: 2019-07-18 14:26:15
 tags:
 - Tomcat
 - Jetty
-keywords:[Tomcat,Jetty]
-description:Tomcat和Jetty的深入学习笔记
+keywords: [Tomcat,Jetty]
+description: Tomcat和Jetty的深入学习笔记
 ---
 
 # Tomcat-NioEndpoint
@@ -184,3 +184,95 @@ Tomcat工作方式：
 
 1. Web加载，通过SCI(ServletContainerInitializer，Servlet 3.0规范中定义)机制接收web 应用启动事件的接口。在实现了SCI接口的类上增加HandlerTypes({ServerEndpoint.class,ServerApplicaitonConfig.class,Endpoint.class})注解，这样Tomcat在启动阶段就会扫描出类出来，作为SCI的onStartup方法参数，并调用onStartup方法。所有扫描到的Endpoint子类和添加了@ServerEndpoint的类都会被放到WebSocketContainer容器中，并且维护了url和endpoint的映射关系。
 2. 处理请求，使用UpgradeProcessor处理WebSocket请求。在WebSocket握手请求到来时，HttpProtocolHandler首先接收到这个请求，通过一个特殊的Filter判断是否具有`Upgrader: websocket`信息，如果有，就用UpgradeProtocolHandler替换原来的HttpProtocolHandler，并把当前Socket的Processor替换成UpgradeProcessor，由该Processor调用最终的Endpoint实例处理请求。
+
+# Jetty-Selector
+
+## ManagedSelector
+
+```java
+public class ManagedSelector extends ContainerLifeCycle implements Dumpable
+{
+    // 原子变量，表明当前的 ManagedSelector 是否已经启动
+    private final AtomicBoolean _started = new AtomicBoolean(false);
+    
+    // 表明是否阻塞在 select 调用上
+    private boolean _selecting = false;
+    
+    // 管理器的引用，SelectorManager 管理若干 ManagedSelector 的生命周期
+    private final SelectorManager _selectorManager;
+    
+    //ManagedSelector 不止一个，为它们每人分配一个 id
+    private final int _id;
+    
+    // 关键的执行策略，生产者和消费者是否在同一个线程处理由它决定
+    private final ExecutionStrategy _strategy;
+    
+    //Java 原生的 Selector
+    private Selector _selector;
+    
+    //"Selector 更新任务 " 队列
+    private Deque<SelectorUpdate> _updates = new ArrayDeque<>();
+    private Deque<SelectorUpdate> _updateable = new ArrayDeque<>();
+    
+    ...
+}
+```
+
+<!--more-->
+
+## SelectorUpdate接口
+
+Jetty将Channel注册到Selector的事件抽象为SelectorUpdate接口，如果操作ManageSelector中的Selector，需要提交一个任务类，这个类需要实现接口的update方法，在方法里定义想要的操作。
+
+例如Connector中Endpoint组件对读就绪事件感兴趣，于是就向ManagedSelector提交了一个内部任务类ManagedSelector.SelectorUpdate，并在update方法里调用updateKey方法，这些update方法的调用者就是ManagedSelector自己，它在一个死循环里拉取这些SelectorUpdate任务类逐个执行。
+
+## Selectable接口
+
+I/O事件到达时，通过这个接口返回一个Runnable，这个Runnable就是I/O事件就绪时的处理逻辑。
+
+```java
+public interface Selectable
+{
+    // 当某一个 Channel 的 I/O 事件就绪后，ManagedSelector 会调用的回调函数
+    Runnable onSelected();
+
+    // 当所有事件处理完了之后 ManagedSelector 会调的回调函数，我们先忽略。
+    void updateKey();
+}
+```
+
+当Channel被选中时，ManagedSelector调用这个Channel所绑定的附件类的onSelected方法来拿到一个Runnable。例如，Endpoint组件在向ManagedSelector注册读就绪事件时，同时也要告诉ManagedSelector在事件就绪时执行什么任务，具体而言就是传入一个附件类，这个附件类需要实现Selectable接口。
+
+## ExecutionStrategy
+
+```java
+public interface ExecutionStrategy
+{
+    // 只在 HTTP2 中用到，简单起见，我们先忽略这个方法。
+    public void dispatch();
+
+    // 实现具体执行策略，任务生产出来后可能由当前线程执行，也可能由新线程来执行
+    public void produce();
+    
+    // 任务的生产委托给 Producer 内部接口，
+    public interface Producer
+    {
+        // 生产一个 Runnable(任务)
+        Runnable produce();
+    }
+}
+```
+
+具体的策略实现类有四种：
+
+- ProduceConsume：生产者自己依次生产和执行任务，也就是用一个线程来侦测和处理一个ManagedSelector上所有的I/O事件；
+- ProduceExecuteConsume：生产者开启新线程来运行任务；
+- ExecuteProduceConsume：生产者自己运行自己生产的任务，但是该策略可能会新建一个新线程继续生产和执行任务，能利用CPU缓存；
+- EatWhatYouKill：对ExecuteProduceConsume策略的改良，如果线程不够或者系统繁忙，就会切换成ExecuteProduceConsume的策略，因为它使用的线程来源于Jetty全局线程池，一旦被阻塞的多了，会连I/O侦测都没有线程可用。
+
+Jetty的实现：
+SelectorProducer是ManagedSelector的内部类，ExecutionStrategy中的Producer接口中的produce方法，需要向ExecutionStrategy返回一个Runnable。这个方法里SelectorProducer主要干了三件事：
+
+1. 如果Channel集合中有I/O事件就绪，就通过Selectable接口获取Runnable，直接返回给ExecutionStrategy去处理；
+2. 如果没有，就看看有没有提交SelectorUpdate等事件注册；
+3. 继续侦测select方法，侦测I/O事件。

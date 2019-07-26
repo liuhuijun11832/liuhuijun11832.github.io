@@ -6,7 +6,7 @@ tags:
 - Tomcat
 - Jetty
 keywords: [Tomcat,Jetty]
-description:深入学习Tomcat和Jetty的笔记
+description: 深入学习Tomcat和Jetty的笔记
 ---
 
 # Linux-进程和线程
