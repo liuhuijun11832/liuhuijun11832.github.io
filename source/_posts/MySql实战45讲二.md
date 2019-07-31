@@ -57,15 +57,15 @@ InnoDB刷脏页的控制策略：
 ```bash
 fio -filename=/root/1.txt -direct=1 -iodepth 1 -thread -rw=randrw -ioengine=psync -bs=16k -size=500M -numjobs=10 -runtime =10 -group_reporting -name=mytest﻿
 ```
-InnnoDB根据脏页比例和redo log写盘速度会单独算出两个数字，innodb\_max\_dirty\_pages\_pct是脏页比例上限，默认是75%，假设当前脏页比例为M，首先需要根据如下公式计算一个0～100之间的数字：
+InnnoDB根据脏页比例和redo log写盘速度会单独算出两个数字，innodb\_max\_dirty\_pages\_pct是脏页比例上限，默认是75%，假设当前脏页比例为M，首先需要根据如下公式计算一个0～100之间的数字v1：
 
 	F1(M){
-    if M>=innodb_max_dirty_pages_pct then
-        return 100;
-    return 100*M/innodb_max_dirty_pages_pct;    
+	if M>=innodb_max_dirty_pages_pct then
+	    return 100;
+	return 100*M/innodb_max_dirty_pages_pct;    
 	}
-	
-InnoDB每次写入的日志都有一个序号，当前写入的序号跟checkpoint对应的序号之间的差值假设为N。InnoDB会根据这个N算出一个范围在0～100之间的数字，N越大那么计算出来的值页越大。然后取其中较大的值获得百分比数（除以100）乘以`innodb_io_capcaity`的数值即是innodb刷脏页的速度。
+
+InnoDB每次写入的日志都有一个序号，当前写入的序号跟checkpoint对应的序号之间的差值假设为N。InnoDB会根据这个N算出一个范围在0～100之间的数字v2，N越大那么计算出来的值页越大。然后取v1和v2其中较大的值获得百分比数（除以100）乘以`innodb_io_capcaity`的数值即是innodb刷脏页的速度。
 
 优化方案：合理设置`innodb_io_capacity`，并且关注脏页比例不要接近75%（`Innodb_buffer_pool_pages_dirty/Innodb_buffer_pool_pages_total`)。
 
