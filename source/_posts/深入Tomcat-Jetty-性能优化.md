@@ -69,11 +69,11 @@ JDK 9以及以上，启动参数如下：
 
 32M方便看到Full GC，`-verbose:gc`打印GC日志，`-xloggc:gc`用于生成gc日志文件，后面是文件名格式，`PrintGCDetails`打印日志详情包括停顿时间等。使用Jmeter工具创建一个线程组，并创建一个Http请求，持续时间为15分钟。
 
-![Jemter线程组配置.png](/Users/liuhuijun/Desktop/blog/source/_posts/深入Tomcat-Jetty-性能优化/Jemter线程组配置.png)
+![Jemter线程组配置.png](深入Tomcat-Jetty-性能优化/Jemter线程组配置.png)
 
 15分钟以后，使用GCviewer打开gc日志，结果如下：
 
-![GCViewer-result.png](/Users/liuhuijun/Desktop/blog/source/_posts/深入Tomcat-Jetty-性能优化/GCViewer-result.png)
+![GCViewer-result.png](深入Tomcat-Jetty-性能优化/GCViewer-result.png)
 
 这里只勾选了上面view工具栏中的蓝色、黑色、绿色这三条线，蓝色代表使用的堆，黑色代表进行了full gc，密集绿色代表了总的GC。可以得出结论：
 
@@ -86,9 +86,129 @@ JDK 9以及以上，启动参数如下：
 
 `java -Xmx1024m -Xss256k -verbose:gc -Xloggc:gc-pid%p-%t.log -XX:+PrintGCDetails -jar target/tomcat-jetty-test-0.0.1-SNAPSHOT.jar`
 
-![GCViewer-1024M-result.png](/Users/liuhuijun/Desktop/blog/source/_posts/深入Tomcat-Jetty-性能优化/GCViewer-1024M-result.png)
+![GCViewer-1024M-result.png](深入Tomcat-Jetty-性能优化/GCViewer-1024M-result.png)
 
 可以看到没有了Full GC，并且新生代GC没有上一幅图那么频繁密集，而GC停顿时间也只有2.6秒，比上图15秒好太多了。
 
 # 监控
+
+为了模拟服务端Tomcat的监控，改造一下上节的spring boot项目，主要是pom文件里的两个依赖：
+
+```xml
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<artifactId>spring-boot-starter-tomcat</artifactId>
+					<groupId>org.springframework.boot</groupId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-tomcat</artifactId>
+			<scope>provided</scope>
+		</dependency>
+```
+
+然后修改启动类中的代码：
+
+```java
+@SpringBootApplication
+public class Application extends SpringBootServletInitializer {
+
+    @Override
+    protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) {
+        return builder.sources(Application.class);
+    }
+
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
+
+}
+```
+
+如果提示缺少javax的jar包，在pom文件中引入并将scope填写为provided即可。
+
+这样就可以放到外置的Tomcat容器中运行了，在启动外置Tomcat之前，还需要编辑一个脚本文件setenv.sh，写入以下脚本：
+
+```sh
+export JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote"
+export JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.port=9001"
+export JAVA_OPTS="${JAVA_OPTS} -Djava.rmi.server.hostname=x.x.x.x"
+export JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.ssl=false"
+export JAVA_OPTS="${JAVA_OPTS} -Dcom.sun.management.jmxremote.authenticate=false"
+```
+
+放到tomcat的bin目录下，这样即可设置好环境变量，但是使用bin目录下shutdown.sh关闭时可能会报`address already in use`的错，猜测是在执行该脚本的时候又执行了setenv.sh文件，所以报了地址被占用的错。推荐在bin目录下再写一个脚本：
+
+```sh
+#! /bin/sh
+source /etc/profile
+ps -ef | grep tomcat | grep -v grep | awk '{print $2}'| xargs kill
+sh /usr/local/tomcat9/bin/startup.sh 
+```
+
+用于重启tomcat。
+
+输入`jconsole x.x.x.x:9001`打开jconsole界面，这里主要记录**吞吐量、响应时间、错误数、线程池、CPU、JVM情况**等。
+
+![Jconsole-Window.png](深入Tomcat-Jetty-性能优化/Jconsole-Window.png)
+
+`maxTime:`最长响应时间；
+
+`processTime:`平均响应时间；
+
+`requestCount:`吞吐量；
+
+`errorCount:`错误数。
+
+线程标签可以看到线程的堆栈和等待状态，以及堆栈；内存标签能够看到各个区的空间使用量，VM概要能够看到JVM的基本信息。
+
+命令行可以使用以下方式：
+
+```sh
+ps -ef | grep tomcat
+cat /proc/30086/status 
+```
+
+其中30086就是tomcat的pid，然后使用`top -p 30086`可以看到该进程所占用的系统资源。
+
+## 工具
+
+和上一节一样。
+
+## 实战
+
+在controller添加代码：
+
+```java
+		@GetMapping("/greeting/latency/{seconds}")
+    public Greeting delayGreeting(@PathVariable Long seconds){
+        try {
+            TimeUnit.SECONDS.sleep(seconds);
+        } catch (InterruptedException e) {
+            log.error("睡眠异常", e);
+        }
+        Greeting greeting = new Greeting("Hello Second");
+        return greeting;
+    }
+```
+
+通过url传入参数来达到睡眠的效果。
+
+使用Jmeter测试，分为三个阶段，即睡眠2s、睡眠4s和睡眠6s来测试，同时设置线程组响应超时为1000ms（这样Jemeter就不会等到请求返回），100个线程。得到如下结果：
+
+![Jconsole-lab-result.png](深入Tomcat-Jetty-性能优化/Jconsole-lab-result.png)
+
+图中有几条不和谐的线是当时由于连接数太多导致Jconsole丢失连接，所以线程数降为0。
+
+首先看线程，一开始压测未开始的时候只有30条线程左右，等到2s睡眠的压测开始以后，由于睡眠2s才会返回数据，所以同时有200条线程在运行，加上一些负责网络通线和后台任务，线程一共差不多250条左右；第一阶段停止后，又下降到40（不是0，为0是因为第二阶段压测开始，丢失连接导致无法正确获取数据），第二阶段需要450条线程，第三阶段需要650条左右线程。
+
+再看内存，基本上随着线程的增加，创建线程导致内存的消耗也会提高。
+
+最后看CPU，基本上CPU的峰值稳定，只要吞吐量一定，CPU的占用率基本保持一定。
 
