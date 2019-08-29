@@ -89,3 +89,6 @@ JDK 9以及以上，启动参数如下：
 ![GCViewer-1024M-result.png](/Users/liuhuijun/Desktop/blog/source/_posts/深入Tomcat-Jetty-性能优化/GCViewer-1024M-result.png)
 
 可以看到没有了Full GC，并且新生代GC没有上一幅图那么频繁密集，而GC停顿时间也只有2.6秒，比上图15秒好太多了。
+
+# 监控
+
