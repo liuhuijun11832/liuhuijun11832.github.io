@@ -25,7 +25,7 @@ CMS：合理设置新生代和老年代的大小；
 
 G1：设置堆总的大小和GC最大停顿时间：`-XX:MaxGCPauseMillis`;
 
-# 实战
+# JVM调优
 
 ## 工具
 
@@ -211,4 +211,176 @@ cat /proc/30086/status
 再看内存，基本上随着线程的增加，创建线程导致内存的消耗也会提高。
 
 最后看CPU，基本上CPU的峰值稳定，只要吞吐量一定，CPU的占用率基本保持一定。
+
+# I/O和线程池调优
+
+## I/O选择
+
+ NIO：Tomcat默认的连接器，大多数场景够用；
+
+ARP：适用于 TLS加密传输的场景，通过OpenSSL（C语言实现）实现；
+
+NIO2：用于Windows系统，因为Linux的异步本质上和NIO的底层都是通过epoll实现，相比而言NIO会更简单高效。
+
+## 线程池调优
+
+线程池核心参数：
+
+* threadPriority（优先级，默认是5）；
+* daemon（是否后台线程，默认是tue）；
+* namePrefix（线程前缀）；
+* **maxThreads**（线程池中最大线程数，默认是200）；
+* minSpareThreads（最小线程数、线程空闲超过一定时间会回收，默认是25）；
+* maxIdleTime（线程最大空闲时间，超过该时间就会回收，默认是一分钟）；
+* maxQueueSize（任务队列长度，默认是Integer.MAX_VALUE）;
+* prestartminSpareThreads（是否在线程池启动时就创建最小线程数，默认为false）。
+
+重点是最大线程数，如果过小，会产生线程饥饿，大量任务等待；如果过大，会耗费大量的cpu资源和内存资源。
+
+## 利特尔法则（Little`s Law）
+
+`系统中请求数 = 请求到达速率 * 每个请求处理时间`
+
+对应：
+
+`线程池大小 = 每秒请求数 * 平均请求处理时间`
+
+上面是理想公式，不考虑I/O的情况，如果是**I/O密集型**任务，那么需要更多线程。
+
+考虑综合情况：
+
+`线程池大小 = （线程I/O阻塞时间+线程CPU时间） / 线程CPU时间`
+
+其中上面公式中括号里的`I/O阻塞时间 + 线程CPU时间 =  平均处理时间`；
+
+根据上面两个公式，可以得到下面三个结论：
+
+1. 请求处理时间越长，需要的线程数越多；
+2. 请求处理过程中，I/O等待时间越长，需要的线程数越多；
+3. 请求进来的速率越快，需要的线程数越多。
+
+**实际上，线程池个数是先用上面两个公式算出大概的数字（先用较小的值），然后通过压测调整从而达到最优。**
+
+先设置一个较小的值，通过压测发现错误数增加或者响应时间大幅度增加等情况，就调大线程数，如果发现线程数增大并没有提升TPS甚至下降，那这个值可以认为是最佳线程数。
+
+ # OOM分析
+
+***Java heap space***
+
+原因可能有三种：
+
+1. 内存泄漏；
+2. 配置过低；
+3. finalize方法的过度使用，添加了该方法的对象实例会被添加到"java.lang.ref.Finalizer.ReferenceQueue"的队列中，直到执行了finalize()了以后才会回收。
+
+解决：通过heap dump日志以及stack信息追踪，适当调大配置，不使用finalize方法。
+
+***GC overhead limit exceeded***
+
+垃圾收集器一直在运行，但是效率很低。
+
+解决：查看GC日志或者生成Heap Dump。
+
+***Requested array size exceeds VM limit***
+
+尝试请求了一个超出VM限制的数组。
+
+解决：调大配置，或者是代码计算错误。
+
+***MetaSpace***
+
+元空间耗尽，可能本地空间耗尽或者分配的太小。
+
+***Request size bytes for reason. Out of swap space***
+
+本地堆内存或者本地内存快要耗尽。
+
+解决：需要根据JVM抛出的错误信息来进行诊断，或者使用操作系统的DTrace工具来跟着那个系统调用。
+
+***unable to create native threads***
+
+步骤：
+
+1. 请求新线程；
+2. JVM本地native code代理该请求向操作系统申请创建native thread；
+3. 操作系统尝试创建native thread，并分配`-Xss`线程栈；
+4. 由于各种原因，分配失败，抛出上述异常。
+
+`用户空间内存 = 堆内存 + 元数据空间内存 + 线程数 * 栈空间`，由于内存空间的不足导致了创建线程创建失败。
+
+Linux的系统限制也会导致该情况，执行`ulimit -a`，看到以下结果：
+
+```sh
+[root@VM_0_8_centos ~]# ulimit -a
+core file size          (blocks, -c) 0
+data seg size           (kbytes, -d) unlimited
+scheduling priority             (-e) 0
+file size               (blocks, -f) unlimited
+pending signals                 (-i) 7281
+max locked memory       (kbytes, -l) 64
+max memory size         (kbytes, -m) unlimited
+open files                      (-n) 100001
+pipe size            (512 bytes, -p) 8
+POSIX message queues     (bytes, -q) 819200
+real-time priority              (-r) 0
+## 线程栈大小
+stack size              (kbytes, -s) 8192
+cpu time               (seconds, -t) unlimited
+## 用户最大进程限制
+max user processes              (-u) 7281
+virtual memory          (kbytes, -v) unlimited
+file locks                      (-x) unlimited
+```
+
+可以使用`ulimit -u 65535`进行修改。
+
+系统中`sys.kernal.threads-max`限制了全局的系统参数：
+
+```sh
+[root@VM_0_8_centos ~]# cat /proc/sys/kernel/threads-max 
+14563
+```
+
+可以在`/etc/sysctl.conf`配置文件中，加入`sys.kernal.threads-max=99999`；
+
+`sys.kernal.pid_max`限制了系统全局的PID号数值的限制，每一个线程都有自己的id，id超过这个值线程就会创建事变。同样可以在`/etc/sysctl.conf`加入`sys.kernal.pid_max=99999`。
+
+## 内存泄漏实战
+
+使用上面的程序，写入代码：
+
+```java
+@Slf4j
+@Component
+public class MemLeader {
+
+    private List<Object> objs = new LinkedList<>();
+
+    @Scheduled(fixedRate = 1000)
+    public void run(){
+        log.info("scheduler run");
+        for (int i = 0; i < 50000 ; i++){
+            objs.add(new Object());
+        }
+    }
+
+}
+```
+
+每秒启动一次定时job，记住要在启动类加上`@EnableScheduling`，模拟内存泄漏，然后使用`jps`和`jstat -gc pid 2000 1000`观察内存分配情况。
+
+![jstat-pid-2000-1000.png](深入Tomcat-Jetty-性能优化\jstat-pid-2000-1000.png)
+
+其中参数简介如下：
+
+* S0C：表示第一个Survivor总大小；
+* S1C：第二个Survivor总大小；
+* S0U：第一个Survivor已使用的大小；
+* S1C：第二个Survivor已使用的大小。
+
+后面的E表示Eden区域，O表示Old区域，M表示Metaspace，CCSC压缩空间，YGC是指YoungGC，FGC是FullGC。使用gcviewer打开gc.log文件，如下：
+
+![GCViewer-memleak.png](深入Tomcat-Jetty-性能优化\GCViewer-memleak.png)
+
+蓝色的是堆内存，粉红色线是老年代的使用内存，黑色线是full GC，可以看到后期在频繁地进行full gc，但是堆内存和老年代的内存并没有降下来，此时我们需要使用` jmap -dump:live,format=b,file=153232.bin 153232`将堆内存情况转储下来，并借助Eclipse Memory Analyzer（下载地址[https://www.eclipse.org/mat/downloads.php](https://www.eclipse.org/mat/downloads.php)）打开dump文件进行分析。
 
