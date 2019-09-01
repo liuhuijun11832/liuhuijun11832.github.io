@@ -624,7 +624,7 @@ tomcat的tps、资源占用如下：
 
 ![tomcat-pressure-resource-result.png](深入Tomcat-Jetty-性能优化/tomcat-pressure-resource-result.png)
 
-jetty的tps、资源占用如下：
+排除Tomcat的包，使用Jetty的包，Jetty的tps、资源占用如下：
 
 ![jetty-pressure-tps-result.png](深入Tomcat-Jetty-性能优化/jetty-pressure-tps-result.png)
 
