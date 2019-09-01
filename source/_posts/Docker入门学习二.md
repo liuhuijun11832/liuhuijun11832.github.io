@@ -194,6 +194,14 @@ Compose可以对本机上的容器进行编排。Kuberneters是由Google研发�
 
 Docker Compose并不属于Docker Engine的一部分，所以需要另外安装。而对于windows或者mac，如果装了Docker Desktop（需要开启Hyper-v）或者Docker toolbox（需要安装virtualBox引擎）都可以直接运行Docker Compose（Hyper-v和virtualBox所使用的虚拟化技术会冲突，所以只推荐装其中一种）。
 
+如果是Linux系统，可以使用如下命令安装，中间版本号可以自己选择：
+
+```sh
+curl -L https://github.com/docker/compose/releases/download/1.25.0-rc2/docker-compose-`uname -s`-`uname -m` -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+
+```
+
 Docker Compose默认使用docker-compose.yml文件作为配置文件，如非必要不推荐改名。
 看一个简单的配置文件：
 
