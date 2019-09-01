@@ -1,6 +1,6 @@
 ---
 title: 深入Tomcat/Jetty-性能优化
-categories: 编程技术
+categories: 学习笔记
 date: 2019-08-24 11:06:40
 tags: 
 - Tomcat
@@ -8,10 +8,6 @@ tags:
 keywords: [Tomcat,Jetty]
 description: 深入学习Tomcat/Jetty的笔记
 ---
-
-[TOC]
-
-
 
 # CMS 和 G1
 
@@ -21,7 +17,7 @@ CMS将整个堆分成了新生代、老年代两大部分，新生代分为Eden�
 
 G1使用非连续空间，所以它能够管理更大的堆，同时能够并发完成大部分GC的工作，这期间不会发生STW；G1管理的每个区域都称之为region，它的固定大小通常为2m。
 
-
+<!--more-->
 
 # 调优原则
 
@@ -479,7 +475,7 @@ grep -o 'pool-1-thread' 10095.log | wc -l
 
 详细的进程内信息表明只占用了不到79%的CPU，那么剩下的CPU开销猜测有可能是发生了大量的线程上下文切换导致的，使用vmstat（[https://linux.die.net/man/8/vmstat](https://linux.die.net/man/8/vmstat)）可以查看：
 
-![](/Users/liuhuijun/Desktop/blog/source/_posts/深入Tomcat-Jetty-性能优化/vmstat-result1.png)
+![vmstat-result1.png](深入Tomcat-Jetty-性能优化/vmstat-result1.png)
 
 其中，in是CPU中断次数，cs是上下文切换次数。此时我再把这个Java进程停掉，再次查看信息：
 
@@ -643,7 +639,4 @@ jetty的tps、资源占用如下：
 
 * Jetty吞吐量、线程开销和资源占用略好于Tomcat，恰好反映其设计很轻量小巧；
 * Tomcat比Jetty更加稳定。
-
-
->>>>>>> 28e1dee345a6a873c031ef1a1383f10f47a404ac
 
