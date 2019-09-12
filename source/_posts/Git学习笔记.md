@@ -78,40 +78,37 @@ git有三个区：
 首先要有一个远程仓库和SSH-key，码云、github等都差不多。
 
 1. 创建SSH Key。在用户主目录下，看看有没有.ssh目录，如果有，再看看这个目录下有没有id_rsa和id_rsa.pub这两个文件，如果已经有了，可直接跳到下一步。如果没有，打开Shell（Windows下打开Git Bash），创建SSH Key：`ssh-keygen -t rsa -C "liuhuijun_2017@163.com"`生成密钥对（记住邮箱那里要填自己在远程仓库的标识），找到.ssh目录找到id\_rsa（私钥）和id\_rsa.pub（公钥），复制公钥里的内容。
-
 2. 登录代码托管网站，点击“Add SSH Key”，粘贴刚刚复制的内容。
-
 3. 将本地工作区添加远程仓库，名为origin。`git remote add origin git@gitee.com:guitar_coder/git-learning.git（`SSH方式）或者 `git remote add origin https://gitee.com/guitar\_coder/git-learning.git`（HTTPS方式）。
 
-    
-    
-    ```
-    git pull:[origin] [remote-branch]:[local-branch]，如果参数全部带上，表示从origin主机的remote-branch更新代码到本地的local-branch分支，相当于git fetch+git merge。
-       
-    git push：[-u] [origin] [local-master]:[remote-master] 将本地master分支推送到远程master分支，并且将origin作为默认主机，在将来的推送或者拉取时就可以简化该命令，直接使用git push，只需要第一次推送使用这个命令即可。如果省略远程分支名，那么默认会将代码提交到与本地分支同名的远程分支，远程没有会自动创建。
-    提示：如果创建远程仓库时使用了初始化模板，那么远程仓库就会有一些readme.md或者.gitignore等文件，那么需要先git  pull <remote> <branch>，在本文中就是git pull origin master，意为拉取远程主分支。也可以git branch --set-upstream-to=origin/<branch> master，<branch>处填入远程主分支，意为将本地主分支与远程主分支关联，然后执行git pull。如果提示refusing to merge unrelated histories，表示当前代码仓库和远程仓库是两个仓库，不能直接pull，可以执行git pull origin master --allow-unrelated-histories ，关联好后，最后可以直接执行git push。
-       
-    git clone <url>：克隆远程仓库，加-b选项可以指定拉取仓库的某个分支代码，例如git clone ---b release url。
-       
-    git checkout：切换分支，[-b] <branch> 创建并切换到分支<branch>，相当于git branch <branch>，然后git checkout <branch>。
-       
-    git branch：查看分支；<branch>创建分支；[-d|-D] <branch>删除分支|未合并强制删除。Git还会自动提示我们当前master分支比远程的master分支的超前状态。
-       
-    git merge：<branch>将<branch>分支合并到当前分支。有时候，比如你在这个分支上改了某一个地方，其他人在另一个分支上改了同样一个地方，这样就会导致冲突，需要解决冲突，需要手动合并修改该文件，再重新add并commit。这时候使用git log --graph --pretty=oneline --abbrev-commit,可以看到记录变更。使用git 默认的Fast-forward方式合并分支可能会导致在删除被合并分支后丢失合并信息，所以可以用--no-ff禁用Fast-forward的方式，这样   在合并的时候它会自动创建一个新的commit：git merge --no-ff -m "merge without fast-forward" <branch>。
-       
-    git stash：可以理解为将当前工作保存一份快照，执行该指令后，通过git status查看工作空间就如同上次提交后没有更改一样。然后我们可以新建分支去修复bug或者去做一些临时工作，然后切换到主分支，将修复的bug分支合并进来。这时候我们再恢复快照，git stash list可以查看快照列表，可以用git stash apply <stash@{0}> 选择恢复到哪个快照，如果产生冲突了，按照前面merge产生冲突的方案解决即可。apply恢复不会删除快照，可以使用git stash pop <stash@{0}>恢复并删除快照，如果产生冲突了，这个命令也不会删除快照，可以使用git stash clear清空快照。
-       
-    git remote：[-v]查看远程仓库地址，本地新建的分支如果不push到远程，那么别人就是看不到的。[add] <origin-name> <url>：为当前工作空间关联名为origin-name的远程仓库，[remove]<origin> 移除远程仓库关联。[rm]<origin>同删除远程仓库。在上面git push一节讲过如果仓库里有一些模板文件的时候，直接push是不成功的，需要先pull，如果提示no-tracking information，需要添加本地分支与远程分支的关联。
-       
-    git rebase：
-       
-    git merge合并：所有本地commit是基于当前本地的master，最终push会将远程最新master合并到本地，首先前移本地master，最终会形成一次新的commit推送到远程将远程master前移，这样就会形成分叉；
-    git rebase合并：它会挪动所有本地commit是基于远程最新的master，即最终push会直接将远程master前移，整理成一条直线，
-       
-    git tag：<tag>给分支打标签，如果不加该选项，则是查看所有标签，<commit_id>给某版本commit加上tag，默认是当前HEAD，git tag -a v0.1 -m "version 0.1 released" 1094adb ，[-a]指定标签名，[-m]指定说明文字，[-d]删除，推送某个标签到远程：git push origin <tagname>，一次性推送全部尚未推送到远程的本地标签：git push origin --tags，删除远程标签：git push origin :refs/tags/<tagname>。
-       
-    git show：<tag>查看标签信息。
-    ```
+常用命令：
+
+`git pull`:[origin] [remote-branch]:[local-branch]，如果参数全部带上，表示从origin主机的remote-branch更新代码到本地的local-branch分支，相当于git fetch+git merge。
+
+` git push`：[-u] [origin] [local-master]:[remote-master] 将本地master分支推送到远程master分支，并且将origin作为默认主机，在将来的推送或者拉取时就可以简化该命令，直接使用git push，只需要第一次推送使用这个命令即可。如果省略远程分支名，那么默认会将代码提交到与本地分支同名的远程分支，远程没有会自动创建。
+
+ note：如果创建远程仓库时使用了初始化模板，那么远程仓库就会有一些readme.md或者.gitignore等文件，那么需要先`git  pull <remote> <branch>`，在本文中就是`git pull origin master`，意为拉取远程主分支。也可以`git branch --set-upstream-to=origin/<branch> master`，<branch>处填入远程主分支，意为将本地主分支与远程主分支关联，然后执行`git pull`。如果提示refusing to merge unrelated histories，表示当前代码仓库和远程仓库是两个仓库，不能直接pull，可以执行`git pull origin master --allow-unrelated-histories` ，关联好后，最后可以直接执行`git push`。
+
+ `git clone <url>`：克隆远程仓库，加-b选项可以指定拉取仓库的某个分支代码，例如`git clone -b release url`。
+
+ `git checkout`：切换分支，[-b] <branch> 创建并切换到分支<branch>，相当于`git branch <branch>`，然后`git checkout <branch>`。    
+
+` git branch`：查看分支；<branch>创建分支；[-d|-D] <branch>删除分支|未合并强制删除。Git还会自动提示我们当前master分支比远程的master分支的超前状态。
+
+` git merge`：<branch>将<branch>分支合并到当前分支。有时候，比如你在这个分支上改了某一个地方，其他人在另一个分支上改了同样一个地方，这样就会导致冲突，需要解决冲突，需要手动合并修改该文件，再重新add并commit。这时候使用`git log --graph --pretty=oneline --abbrev-commit`,可以看到记录变更。使用git 默认的Fast-forward方式合并分支可能会导致在删除被合并分支后丢失合并信息，所以可以用`--no-ff`禁用Fast-forward的方式，这样   在合并的时候它会自动创建一个新的commit：`git merge --no-ff -m "merge without fast-forward" <branch>`。
+
+ `git stash`：可以理解为将当前工作保存一份快照，执行该指令后，通过`git status`查看工作空间就如同上次提交后没有更改一样。然后我们可以新建分支去修复bug或者去做一些临时工作，然后切换到主分支，将修复的bug分支合并进来。这时候我们再恢复快照，`git stash list`可以查看快照列表，可以用`git stash apply <stash@{0}> `选择恢复到哪个快照，如果产生冲突了，按照前面merge产生冲突的方案解决即可。apply恢复不会删除快照，可以使用`git stash pop <stash@{0}>`恢复并删除快照，如果产生冲突了，这个命令也不会删除快照，可以使用`git stash clear`清空快照。
+
+` git remote`：[-v]查看远程仓库地址，本地新建的分支如果不push到远程，那么别人就是看不到的。[add] <origin-name> <url>：为当前工作空间关联名为origin-name的远程仓库，[remove]<origin> 移除远程仓库关联。[rm]<origin>同删除远程仓库。在上面git push一节讲过如果仓库里有一些模板文件的时候，直接push是不成功的，需要先pull，如果提示no-tracking information，需要添加本地分支与远程分支的关联。
+
+` git rebase`：
+
+* ` git merge`合并：所有本地commit是基于当前本地的master，最终push会将远程最新master合并到本地，首先前移本地master，最终会形成一次新的commit推送到远程将远程master前移，这样就会形成分叉；
+* `git rebase`合并：它会挪动所有本地commit是基于远程最新的master，即最终push会直接将远程master前移，整理成一条直线，
+
+` git tag`：<tag>给分支打标签，如果不加该选项，则是查看所有标签，<commit_id>给某版本commit加上tag，默认是当前HEAD，`git tag -a v0.1 -m "version 0.1 released" 1094adb` ，[-a]指定标签名，[-m]指定说明文字，[-d]删除，推送某个标签到远程：`git push origin <tagname>`，一次性推送全部尚未推送到远程的本地标签：`git push origin --tags`，删除远程标签：`git push origin :refs/tags/<tagname>`。
+
+` git`：<tag>查看标签信息。
 
 总结下来，多人协作模式为（假设远程仓名为origin，远程主分支为master，本地主分支为master）：
 
@@ -418,7 +415,7 @@ GitLab Flow在GitHub Flow的基础上做了改良，额外衍生出三个子类�
 
 带发布分支：
 
-![](Git学习笔记/1548899634961_12.jpeg)
+![](Git学习笔记/1548899634961_12.jpg)
 
 1. 用于对外界发布软件的项目，同时需要维护多个发布版本。
 2. 尽可能晚地从master拉取发布分支。
