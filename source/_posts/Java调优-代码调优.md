@@ -11,6 +11,8 @@ description: Java调优之编写代码部分的调优
 
 <img src="Java调优-代码调优/code-optimize.jpg" alt="code-optimize.jpg"  />
 
+<!--more-->
+
 以上是几个版本JDK中String对象的组成。
 
 JDK6的时候是通过offset和count来定位char[]数组；
