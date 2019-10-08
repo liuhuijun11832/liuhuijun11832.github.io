@@ -11,6 +11,8 @@ description: Spring MVC学习笔记
 
 这篇笔记主要记录一些比较重要，但是上一篇又没有提到的内容。其中，Spring MVC对Servlet 3.0的实现是重中之重。
 
+<!--more-->
+
 # JAVA SPI
 
 动态替换服务实现的机制，目前Dubbo就是基于SPI提供扩展机制。
