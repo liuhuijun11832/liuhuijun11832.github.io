@@ -2,7 +2,7 @@
 categories: 编程技术
 title: Java实体类转Json的小技巧
 date: 2019-04-15 17:11:58
-tags: Java
+tags: 随记
 keywords: [Json,Gson,FastJson]
 description: Java使用fastjson和gson将实体类转化为json字符串的一些小技巧
 ---
