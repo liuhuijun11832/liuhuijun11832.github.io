@@ -9,7 +9,7 @@ description: Spring Boot和Activiti的整合
 
 # 简介
 
-Activiti是一个基于Apache v2开源协议的工作流引擎，工作流引擎全称是业务流程管理(Business Process Manage)，一种定义了数据流转行为的流程框架，业界有很多工作流引擎，均是BPM协议的实现，例如Activiti，Flowchat等，本文基于Spring Boot，来简单实现一个图书馆的业务管理。
+Activiti是一个基于Apache v2开源协议的工作流引擎，工作流引擎全称是业务流程管理(Business Process Management)，一种定义了数据流转行为的流程框架，业界有很多工作流引擎，均是BPM协议的实现，例如Activiti，Flowchat等，本文基于Spring Boot，来简单实现一个图书馆的业务管理。
 
 <!--more-->
 
