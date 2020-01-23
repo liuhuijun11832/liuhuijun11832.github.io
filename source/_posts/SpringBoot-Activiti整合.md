@@ -674,7 +674,7 @@ public abstract class AbstractEventHandler {
 }
 ```
 
-作为本项目的抽象事件监听，指导手册https://www.activiti.org/userguide/中3.17.6节中详细描述了所支持的事件类型，以及发生的时间。常用的事件有：任务审批拒绝/用户撤销、任务审批超时、流程审批通过。对于第一个事件，上面的操作是直接从运行中表删除(`runtimeService.deleteProcessInstance`)，文档中有该描述：
+作为本项目的抽象事件监听，指导手册[https://www.activiti.org/userguide/](https://www.activiti.org/userguide/)中3.17.6节中详细描述了所支持的事件类型，以及发生的时间。常用的事件有：任务审批拒绝/用户撤销、任务审批超时、流程审批通过。对于第一个事件，上面的操作是直接从运行中表删除(`runtimeService.deleteProcessInstance`)，文档中有该描述：
 
 ```
 PROCESS_CANCELLED:A process has been cancelled. Dispatched before the process instance is deleted from runtime. Process instance is cancelled by API call RuntimeService.deleteProcessInstance
