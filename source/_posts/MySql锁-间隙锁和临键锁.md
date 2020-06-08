@@ -136,7 +136,7 @@ select * from t where c >= 10 and c < 11 for update;
 insert into t values (8,8,8);
 
 --session c
-update t set d = d + 1 where id = 15;
+update t set d = d + 1 where c = 15;
 ```
 分析：
 
@@ -163,10 +163,10 @@ insert into t values (16,16,16);
 ```
 分析：
 
-1. 原则1：范围查询next-key lock(10.15];
+1. 原则1：范围查询next-key lock(10,15];
 2. 原则2：搜索到id=15这一行，所以这一行数据要加锁；
-3. 优化1：非等值查询，不满足优化1；
-4. 有话2：唯一索引，不满足优化2；
+3. 优化1：id=15满足等主键索引值查询，所以next-key lock(10,15]退化为行锁；
+4. 优化2：满足等值查询，所以不会退化为gap lock；
 5. 由于id是唯一索引，所以理论来说没必要再往后搜索，但是实际上还有一个next-key lock(15,20];
 
 所以session b会锁住，session c也会锁住。
